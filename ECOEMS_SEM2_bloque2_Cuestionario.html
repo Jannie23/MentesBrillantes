@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Física: Cinemática 1D y MRU - ECOEMS</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      /* Fondo dinámico y multicolor */
+      --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --text-main: #18181b;
+      --text-muted: #4b5563;
+
+      /* Paleta Neón / Pastel Saturado */
+      --neon-pink: #ff007f;
+      --pastel-pink: #fdf2f8;
+      --neon-purple: #9333ea;
+      --pastel-purple: #f3e8ff;
+      --neon-blue: #00b4d8;
+      --pastel-blue: #e0f2fe;
+      --neon-green: #10b981;
+      --pastel-green: #d1fae5;
+      --neon-red: #f43f5e;
+      --pastel-red: #ffe4e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow-x: hidden;
+      padding: 24px;
+    }
+
+    /* Logo Superior Derecho: Fundido e integrado naturalmente */
+    .top-brand-logo {
+      position: absolute;
+      top: 28px;
+      right: 36px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    .top-brand-logo img {
+      height: 95px;
+      width: auto;
+      object-fit: contain;
+      background: transparent;
+      border: none;
+      outline: none;
+      mix-blend-mode: multiply;
+      filter: contrast(1.1) drop-shadow(0 4px 12px rgba(147, 51, 234, 0.18));
+      transition: transform 0.3s ease;
+      pointer-events: auto;
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.05);
+    }
+
+    /* Contenedor Full Page */
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      width: 100%;
+      max-width: 100%;
+      min-height: calc(100vh - 48px);
+      border-radius: 32px;
+      border: 3px solid var(--neon-purple);
+      box-shadow: 0 20px 40px rgba(147, 51, 234, 0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      margin: auto;
+    }
+
+    /* Barra de progreso */
+    .progress-header {
+      padding: 32px 48px 20px;
+      background: linear-gradient(90deg, #fdf2f8, #f5f3ff, #ecfeff);
+      border-bottom: 3px solid var(--neon-pink);
+      padding-right: 280px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.35rem;
+      color: var(--neon-purple);
+      margin-bottom: 14px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 18px;
+      background-color: var(--pastel-purple);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1px solid #d8b4fe;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 10%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      transition: width 0.4s ease;
+    }
+
+    /* Contenido principal */
+    .quiz-body {
+      padding: 40px 60px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 8px 22px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: 24px;
+    }
+
+    .question-text {
+      font-size: 1.85rem;
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 28px;
+    }
+
+    /* Tabla de datos específica para reactivos de física */
+    .data-table {
+      width: 100%;
+      max-width: 360px;
+      margin: 16px 0 24px;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--neon-blue);
+      box-shadow: 0 4px 10px rgba(0, 180, 216, 0.1);
+      text-align: center;
+    }
+
+    .data-table th, .data-table td {
+      border: 1px solid var(--pastel-blue);
+      padding: 10px 16px;
+      font-size: 1.2rem;
+    }
+
+    .data-table th {
+      background-color: var(--pastel-blue);
+      color: #0369a1;
+      font-weight: 800;
+    }
+
+    /* Opciones */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: 3px solid #e9d5ff;
+      border-radius: 20px;
+      padding: 20px 24px;
+      text-align: left;
+      font-size: 1.35rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-3px);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-purple);
+      background-color: var(--pastel-purple);
+      color: var(--neon-purple);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 18px;
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 1.25rem;
+      color: var(--neon-purple);
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-purple);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+    }
+
+    /* Retroalimentación */
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #065f46 !important;
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #9f1239 !important;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: 24px 28px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+      line-height: 1.6;
+      font-size: 1.3rem;
+    }
+
+    .feedback-panel.success {
+      background-color: #ecfdf5;
+      border: 3px solid var(--neon-green);
+      color: #065f46;
+    }
+
+    .feedback-panel.error {
+      background-color: #fff1f2;
+      border: 3px solid var(--neon-red);
+      color: #9f1239;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.45rem;
+    }
+
+    /* Botones de acción */
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .action-btn {
+      padding: 16px 40px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+    .btn-check:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+    }
+    .btn-next:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    /* Pantalla de Resultados */
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+      margin: auto;
+      max-width: 850px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .result-title {
+      font-size: 3rem;
+      color: var(--neon-purple);
+      font-weight: 900;
+    }
+
+    .result-score {
+      font-size: 6.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 20px 0;
+    }
+
+    .result-message {
+      font-size: 1.5rem;
+      color: var(--text-main);
+      margin-bottom: 40px;
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: 18px 48px;
+      font-size: 1.35rem;
+    }
+    .btn-restart:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 12px;
+      }
+      .top-brand-logo {
+        top: 14px;
+        right: 16px;
+      }
+      .top-brand-logo img {
+        height: 60px;
+      }
+      .progress-header {
+        padding-right: 140px;
+        padding-left: 20px;
+      }
+      .quiz-body {
+        padding: 20px;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      .question-text {
+        font-size: 1.35rem;
+      }
+      .option-btn {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Logo Esquina Superior Derecha: Fundido e integrado naturalmente -->
+<div class="top-brand-logo">
+  <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
+</div>
+
+<div class="quiz-container">
+  <!-- Barra de progreso superior -->
+  <div class="progress-header" id="progressHeader">
+    <div class="progress-info">
+      <span id="questionCounter">Pregunta 1 de 10</span>
+      <span id="scoreCounter">Aciertos: 0</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <!-- Contenedor del Reactivo -->
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Texto del reactivo</h2>
+
+    <div class="options-grid" id="optionsContainer">
+      <!-- Opciones dinámicas -->
+    </div>
+
+    <!-- Panel de retroalimentación inmediata -->
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <!-- Pantalla final de resultados -->
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 10</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      topic: "Distancia vs. Desplazamiento",
+      question: "Un estudiante camina 80 m hacia el Norte (+) y posteriormente 60 m hacia el Sur (−) sobre una misma trayectoria recta. ¿Cuáles son los valores de la distancia total recorrida (d) y la magnitud de su desplazamiento neto (|Δx|)?",
+      options: [
+        "d = 20 m ; |Δx| = 140 m",
+        "d = 140 m ; |Δx| = 20 m",
+        "d = 140 m ; |Δx| = 140 m",
+        "d = 20 m ; |Δx| = 20 m"
+      ],
+      answer: 1, // B
+      explanation: "La distancia es una cantidad escalar (la suma acumulativa de todo el recorrido: 80 m + 60 m = 140 m). En cambio, el desplazamiento es una magnitud vectorial que toma en cuenta el sentido de los signos: Δx = (+80 m) + (-60 m) = +20 m."
+    },
+    {
+      topic: "Propiedades del MRU",
+      question: "Un automóvil viaja sobre una autopista recta con una velocidad constante de 25 m/s. Tomando en cuenta las propiedades del Movimiento Rectilíneo Uniforme (MRU), ¿cuál es el valor de su aceleración (a)?",
+      options: [
+        "25 m/s²",
+        "9.8 m/s²",
+        "0 m/s²",
+        "-25 m/s²"
+      ],
+      answer: 2, // C
+      explanation: "Por definición fundamental, en el MRU la velocidad no cambia en el tiempo (es constante). Dado que la aceleración mide el cambio de velocidad (a = Δv/Δt), su valor es estrictamente 0 m/s²."
+    },
+    {
+      topic: "Trayectorias Cerradas y Valores Medios",
+      question: "Un ciclista entrena en una pista cerrada de 250 m de perímetro y completa 4 vueltas en 100 s, regresando a la meta. ¿Cuáles son su rapidez media (rm) y su velocidad media (vm)?",
+      options: [
+        "rm = 10 m/s ; vm = 0 m/s",
+        "rm = 0 m/s ; vm = 10 m/s",
+        "rm = 10 m/s ; vm = 10 m/s",
+        "rm = 2.5 m/s ; vm = 0 m/s"
+      ],
+      answer: 0, // A
+      explanation: "La rapidez media depende de la distancia recorrida: 4 vueltas × 250 m = 1000 m, por lo que rm = 1000 m / 100 s = 10 m/s. Al regresar al punto exacto de partida, la posición inicial y final son idénticas (Δx = 0 m), lo que hace que la velocidad media sea vm = 0 m/s."
+    },
+    {
+      topic: "Ecuación de Posición x(t)",
+      question: "La posición de un móvil en MRU está dada por la ecuación x(t) = -15 + 4t (con x en metros y t en segundos). ¿En qué posición (x) se encontrará el móvil en el instante t = 10 s?",
+      options: [
+        "40 m",
+        "25 m",
+        "-55 m",
+        "55 m"
+      ],
+      answer: 1, // B
+      explanation: "Sustituyendo t = 10 s directamente en la ecuación lineal de posición: x(10) = -15 + 4(10) = -15 + 40 = 25 m."
+    },
+    {
+      topic: "Interpretación Física de Gráficas",
+      question: "En una gráfica de posición contra tiempo (x-t), ¿qué variable física equivale directamente a la pendiente de la recta?",
+      options: [
+        "La aceleración instantánea",
+        "La distancia total",
+        "La velocidad",
+        "El punto del sistema de referencia"
+      ],
+      answer: 2, // C
+      explanation: "La pendiente de una recta es m = Δy / Δx. En una gráfica x-t, esto corresponde al cambio de posición entre el cambio de tiempo (Δx / Δt), que es la definición matemática de la velocidad."
+    },
+    {
+      topic: "Estado de Reposo en Gráfica x-t",
+      question: "Al analizar la gráfica posición-tiempo (x-t) de un objeto, se observa que entre t = 3 s y t = 8 s el trazo es una línea completamente horizontal. ¿Qué representa este tramo?",
+      options: [
+        "El objeto retrocede con velocidad uniforme.",
+        "El objeto se encuentra detenido (en reposo).",
+        "El objeto experimenta aceleración constante.",
+        "El objeto avanza a su velocidad máxima."
+      ],
+      answer: 1, // B
+      explanation: "Una línea horizontal en x-t significa que la posición no varía a medida que avanza el tiempo (Δx = 0). Dado que la pendiente es cero, la velocidad es 0 m/s; el objeto está en reposo."
+    },
+    {
+      topic: "Despeje de Tiempo en MRU",
+      question: "Un tren se traslada en línea recta a velocidad constante de 20 m/s. Si en t₀ = 0 s se ubica en x₀ = 50 m, ¿cuánto tiempo (t) tardará en alcanzar la coordenada xf = 450 m?",
+      options: [
+        "25 s",
+        "20 s",
+        "22.5 s",
+        "15 s"
+      ],
+      answer: 1, // B
+      explanation: "El desplazamiento necesario es Δx = xf - x₀ = 450 m - 50 m = 400 m. Aplicando el despeje de tiempo en MRU (t = Δx / v): t = 400 m / 20 m/s = 20 s."
+    },
+    {
+      topic: "Significado del Signo en la Velocidad",
+      question: "En cinemática unidimensional, se indica que la velocidad de una partícula es v = -8 m/s. De acuerdo con las convenciones vectoriales, ¿qué significa el signo negativo (−)?",
+      options: [
+        "Que la partícula está frenando paulatinamente.",
+        "Que la partícula se mueve en sentido contrario al eje positivo del sistema de referencia.",
+        "Que la distancia recorrida es menor que cero.",
+        "Que la masa del cuerpo produce una fuerza retardadora."
+      ],
+      answer: 1, // B
+      explanation: "En física vectorial 1D, el signo algebraico en magnitudes como la velocidad no indica que el objeto esté frenando, sino el sentido de su movimiento respecto al sistema de coordenadas adoptado."
+    },
+    {
+      topic: "Velocidad Media con Cambio de Sentido",
+      question: "Un objeto inicia su movimiento en x₀ = 30 m en t₀ = 0 s y llega a la posición xf = -10 m en tf = 10 s. ¿Cuál es su velocidad media (vm)?",
+      options: [
+        "+4 m/s",
+        "+2 m/s",
+        "-4 m/s",
+        "-2 m/s"
+      ],
+      answer: 2, // C
+      explanation: "El desplazamiento total es Δx = xf - x₀ = (-10 m) - (30 m) = -40 m. Al dividirlo entre el intervalo de tiempo transcurrido (10 s), obtenemos: vm = -40 m / 10 s = -4 m/s."
+    },
+    {
+      topic: "Análisis de Tablas de Datos",
+      question: "Se registra el movimiento rectilíneo de un móvil y se obtiene la siguiente tabla:<br><table class='data-table'><thead><tr><th>Tiempo (t)</th><th>Posición (x)</th></tr></thead><tbody><tr><td>0 s</td><td>10 m</td></tr><tr><td>3 s</td><td>22 m</td></tr><tr><td>6 s</td><td>34 m</td></tr></tbody></table>¿Cuál es la velocidad constante del móvil?",
+      options: [
+        "3 m/s",
+        "4 m/s",
+        "6 m/s",
+        "12 m/s"
+      ],
+      answer: 1, // B
+      explanation: "Tomando el primer intervalo entre t = 0 s y t = 3 s: v = Δx / Δt = (22 m - 10 m) / (3 s - 0 s) = 12 m / 3 s = 4 m/s. (Nota que se mantiene igual entre 3 s y 6 s: 12 m / 3 s = 4 m/s)."
+    }
+  ];
+
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const restartBtn = document.getElementById("restartBtn");
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "✓ ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "✕ Respuesta incorrecta";
+      feedbackText.innerHTML = `<strong>Solución explicada:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 10) {
+      msg = "¡Puntaje perfecto! Dominas a la perfección los conceptos vectoriales, leyes y análisis gráfico de Cinemática 1D y MRU.";
+    } else if (score >= 7) {
+      msg = "¡Muy buen desempeño! Tienes bases sólidas para tu examen, solo te recomendamos revisar con cuidado los signos vectoriales y la interpretación de gráficas.";
+    } else if (score >= 5) {
+      msg = "Buen intento. Se recomienda repasar la diferencia entre rapidez y velocidad, así como el despeje de variables en ecuaciones de posición.";
+    } else {
+      msg = "Es prioritario reforzar los conceptos fundamentales de cinemática, distancia vs. desplazamiento y cálculo de pendientes en gráficas posición-tiempo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  function restartQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "block";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", restartQuiz);
+
+  loadQuestion();
+</script>
+
+</body>
+</html>
