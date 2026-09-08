@@ -14,13 +14,11 @@
     }
 
     :root {
-      /* Fondo dinámico y multicolor */
       --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
       --card-bg: rgba(255, 255, 255, 0.92);
       --text-main: #18181b;
       --text-muted: #4b5563;
 
-      /* Paleta Neón / Pastel Saturado */
       --neon-pink: #ff007f;
       --pastel-pink: #fdf2f8;
       --neon-purple: #9333ea;
@@ -44,37 +42,29 @@
       background: var(--bg-gradient);
       color: var(--text-main);
       min-height: 100vh;
-      width: 100vw;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-      overflow-x: hidden;
-      padding: 24px;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(10px, 3vw, 24px);
     }
 
-    /* Logo Superior Derecho: Fundido e integrado naturalmente */
+    /* Logo Superior */
     .top-brand-logo {
       position: absolute;
-      top: 28px;
-      right: 36px;
+      top: clamp(10px, 2vw, 28px);
+      right: clamp(10px, 3vw, 36px);
       z-index: 100;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: transparent;
-      border: none;
-      box-shadow: none;
       pointer-events: none;
     }
 
     .top-brand-logo img {
-      height: 95px;
+      height: clamp(45px, 8vw, 95px);
       width: auto;
       object-fit: contain;
-      background: transparent;
-      border: none;
-      outline: none;
       mix-blend-mode: multiply;
       filter: contrast(1.1) drop-shadow(0 4px 12px rgba(147, 51, 234, 0.18));
       transition: transform 0.3s ease;
@@ -85,44 +75,45 @@
       transform: scale(1.05);
     }
 
-    /* Contenedor Full Page */
+    /* Contenedor principal adaptable */
     .quiz-container {
       background: var(--card-bg);
       backdrop-filter: blur(16px);
       width: 100%;
-      max-width: 100%;
-      min-height: calc(100vh - 48px);
-      border-radius: 32px;
-      border: 3px solid var(--neon-purple);
+      max-width: 1200px;
+      min-height: auto;
+      border-radius: clamp(16px, 4vw, 32px);
+      border: clamp(2px, 0.5vw, 3px) solid var(--neon-purple);
       box-shadow: 0 20px 40px rgba(147, 51, 234, 0.15);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      margin: auto;
+      position: relative;
     }
 
     /* Barra de progreso */
     .progress-header {
-      padding: 32px 48px 20px;
+      padding: clamp(16px, 3vw, 32px) clamp(16px, 4vw, 48px);
+      padding-right: clamp(70px, 15vw, 280px);
       background: linear-gradient(90deg, #fdf2f8, #f5f3ff, #ecfeff);
       border-bottom: 3px solid var(--neon-pink);
-      padding-right: 280px;
     }
 
     .progress-info {
       display: flex;
       justify-content: space-between;
-      font-size: 1.35rem;
+      font-size: clamp(0.95rem, 2.5vw, 1.35rem);
       color: var(--neon-purple);
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       font-weight: 800;
       letter-spacing: 0.5px;
+      gap: 10px;
     }
 
     .progress-bar-bg {
       width: 100%;
-      height: 18px;
+      height: clamp(10px, 2vw, 18px);
       background-color: var(--pastel-purple);
       border-radius: 30px;
       overflow: hidden;
@@ -139,42 +130,47 @@
 
     /* Contenido principal */
     .quiz-body {
-      padding: 40px 60px;
+      padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 60px);
       flex-grow: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      max-width: 1400px;
-      margin: 0 auto;
       width: 100%;
     }
 
     .question-topic {
       align-self: flex-start;
-      font-size: 1.1rem;
+      font-size: clamp(0.75rem, 2vw, 1.1rem);
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      padding: 8px 22px;
+      padding: 6px 16px;
       border-radius: 30px;
       background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
       color: #ffffff;
       font-weight: 800;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
 
     .question-text {
-      font-size: 1.85rem;
-      line-height: 1.45;
+      font-size: clamp(1.1rem, 2.8vw, 1.85rem);
+      line-height: 1.4;
       font-weight: 700;
       color: var(--text-main);
-      margin-bottom: 28px;
+      margin-bottom: 20px;
+      word-wrap: break-word;
     }
 
-    /* Tabla de datos específica para reactivos de física */
+    /* Tabla de datos totalmente fluida */
+    .table-responsive-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+    }
+
     .data-table {
       width: 100%;
       max-width: 360px;
-      margin: 16px 0 24px;
+      margin: 0 auto;
       border-collapse: collapse;
       background: #ffffff;
       border-radius: 14px;
@@ -186,8 +182,8 @@
 
     .data-table th, .data-table td {
       border: 1px solid var(--pastel-blue);
-      padding: 10px 16px;
-      font-size: 1.2rem;
+      padding: 8px 12px;
+      font-size: clamp(0.9rem, 2vw, 1.2rem);
     }
 
     .data-table th {
@@ -196,33 +192,34 @@
       font-weight: 800;
     }
 
-    /* Opciones */
+    /* Opciones adaptables */
     .options-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-      gap: 20px;
-      margin-bottom: 32px;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: clamp(10px, 2vw, 20px);
+      margin-bottom: 24px;
     }
 
     .option-btn {
       background: #ffffff;
       border: 3px solid #e9d5ff;
-      border-radius: 20px;
-      padding: 20px 24px;
+      border-radius: 16px;
+      padding: clamp(12px, 2vw, 20px);
       text-align: left;
-      font-size: 1.35rem;
+      font-size: clamp(0.95rem, 2.2vw, 1.35rem);
       cursor: pointer;
       display: flex;
       align-items: center;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       color: var(--text-main);
       font-weight: 600;
+      word-break: break-word;
     }
 
     .option-btn:hover:not(:disabled) {
       border-color: var(--neon-pink);
       background-color: var(--pastel-pink);
-      transform: translateY(-3px);
+      transform: translateY(-2px);
     }
 
     .option-btn.selected {
@@ -233,15 +230,15 @@
 
     .option-prefix {
       font-weight: 900;
-      margin-right: 18px;
+      margin-right: 12px;
       background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
-      width: 46px;
-      height: 46px;
+      width: clamp(34px, 5vw, 46px);
+      height: clamp(34px, 5vw, 46px);
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      font-size: 1.25rem;
+      font-size: clamp(0.9rem, 2vw, 1.25rem);
       color: var(--neon-purple);
       border: 2px solid var(--neon-blue);
       flex-shrink: 0;
@@ -278,13 +275,13 @@
     }
 
     .feedback-panel {
-      padding: 24px 28px;
-      border-radius: 20px;
-      margin-bottom: 28px;
+      padding: clamp(14px, 3vw, 24px);
+      border-radius: 16px;
+      margin-bottom: 20px;
       display: none;
       animation: fadeIn 0.3s ease;
-      line-height: 1.6;
-      font-size: 1.3rem;
+      line-height: 1.5;
+      font-size: clamp(0.95rem, 2vw, 1.25rem);
     }
 
     .feedback-panel.success {
@@ -301,30 +298,38 @@
 
     .feedback-title {
       font-weight: 900;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 1.45rem;
+      gap: 8px;
+      font-size: clamp(1.05rem, 2.2vw, 1.4rem);
     }
 
     /* Botones de acción */
     .quiz-footer {
       display: flex;
       justify-content: flex-end;
-      gap: 20px;
+      gap: 12px;
       margin-top: 10px;
+      flex-wrap: wrap;
     }
 
     .action-btn {
-      padding: 16px 40px;
-      font-size: 1.3rem;
+      padding: clamp(12px, 2vw, 16px) clamp(20px, 4vw, 40px);
+      font-size: clamp(1rem, 2vw, 1.3rem);
       font-weight: 800;
       border: none;
-      border-radius: 18px;
+      border-radius: 16px;
       cursor: pointer;
       transition: all 0.25s ease;
       letter-spacing: 0.5px;
+      width: 100%;
+    }
+
+    @media (min-width: 500px) {
+      .action-btn {
+        width: auto;
+      }
     }
 
     .btn-check {
@@ -355,43 +360,43 @@
     .result-screen {
       display: none;
       text-align: center;
-      padding: 60px 20px;
+      padding: clamp(24px, 5vw, 60px) clamp(16px, 4vw, 20px);
       margin: auto;
       max-width: 850px;
       animation: fadeIn 0.4s ease;
     }
 
     .result-title {
-      font-size: 3rem;
+      font-size: clamp(1.8rem, 4vw, 3rem);
       color: var(--neon-purple);
       font-weight: 900;
     }
 
     .result-score {
-      font-size: 6.5rem;
+      font-size: clamp(3.5rem, 10vw, 6.5rem);
       font-weight: 900;
       background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin: 20px 0;
+      margin: 10px 0;
     }
 
     .result-message {
-      font-size: 1.5rem;
+      font-size: clamp(1rem, 2.2vw, 1.5rem);
       color: var(--text-main);
-      margin-bottom: 40px;
-      line-height: 1.6;
+      margin-bottom: 30px;
+      line-height: 1.5;
       font-weight: 600;
     }
 
     .btn-restart {
       background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
       color: #ffffff;
-      padding: 18px 48px;
-      font-size: 1.35rem;
+      padding: clamp(14px, 2.5vw, 18px) clamp(28px, 5vw, 48px);
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
     }
     .btn-restart:hover {
-      transform: scale(1.05);
+      transform: scale(1.03);
       filter: brightness(1.1);
     }
 
@@ -400,45 +405,27 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @media (max-width: 768px) {
-      body {
-        padding: 12px;
-      }
-      .top-brand-logo {
-        top: 14px;
-        right: 16px;
-      }
-      .top-brand-logo img {
-        height: 60px;
-      }
+    /* Adaptación específica para pantallas muy pequeñas (smartphones pequeños) */
+    @media (max-width: 480px) {
       .progress-header {
-        padding-right: 140px;
-        padding-left: 20px;
+        padding-right: 60px;
       }
-      .quiz-body {
-        padding: 20px;
+      .question-topic {
+        margin-bottom: 10px;
       }
       .options-grid {
         grid-template-columns: 1fr;
-      }
-      .question-text {
-        font-size: 1.35rem;
-      }
-      .option-btn {
-        font-size: 1.1rem;
       }
     }
   </style>
 </head>
 <body>
 
-<!-- Logo Esquina Superior Derecha: Fundido e integrado naturalmente -->
 <div class="top-brand-logo">
   <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
 </div>
 
 <div class="quiz-container">
-  <!-- Barra de progreso superior -->
   <div class="progress-header" id="progressHeader">
     <div class="progress-info">
       <span id="questionCounter">Pregunta 1 de 10</span>
@@ -449,7 +436,6 @@
     </div>
   </div>
 
-  <!-- Contenedor del Reactivo -->
   <div class="quiz-body" id="quizBody">
     <span class="question-topic" id="topicBadge">Tema</span>
     <h2 class="question-text" id="questionText">Texto del reactivo</h2>
@@ -458,7 +444,6 @@
       <!-- Opciones dinámicas -->
     </div>
 
-    <!-- Panel de retroalimentación inmediata -->
     <div class="feedback-panel" id="feedbackPanel">
       <div class="feedback-title" id="feedbackTitle"></div>
       <div id="feedbackText"></div>
@@ -470,7 +455,6 @@
     </div>
   </div>
 
-  <!-- Pantalla final de resultados -->
   <div class="result-screen" id="resultScreen">
     <h2 class="result-title">¡Evaluación Finalizada!</h2>
     <div class="result-score" id="finalScore">0 / 10</div>
@@ -490,7 +474,7 @@
         "d = 140 m ; |Δx| = 140 m",
         "d = 20 m ; |Δx| = 20 m"
       ],
-      answer: 1, // B
+      answer: 1,
       explanation: "La distancia es una cantidad escalar (la suma acumulativa de todo el recorrido: 80 m + 60 m = 140 m). En cambio, el desplazamiento es una magnitud vectorial que toma en cuenta el sentido de los signos: Δx = (+80 m) + (-60 m) = +20 m."
     },
     {
@@ -502,8 +486,8 @@
         "0 m/s²",
         "-25 m/s²"
       ],
-      answer: 2, // C
-      explanation: "Por definición fundamental, en el MRU la velocidad no cambia en el tiempo (es constante). Dado que la aceleración mide el cambio de velocidad (a = Δv/Δt), su valor es estrictamente 0 m/s²."
+      answer: 2,
+      explanation: "Por definición fundamental, en el MRU la velocidad no cambia en el tiempo (es constante). Dado que la aceleración mide el cambio de velocidad (a = Δv/Δt), su valor es strictly 0 m/s²."
     },
     {
       topic: "Trayectorias Cerradas y Valores Medios",
@@ -514,7 +498,7 @@
         "rm = 10 m/s ; vm = 10 m/s",
         "rm = 2.5 m/s ; vm = 0 m/s"
       ],
-      answer: 0, // A
+      answer: 0,
       explanation: "La rapidez media depende de la distancia recorrida: 4 vueltas × 250 m = 1000 m, por lo que rm = 1000 m / 100 s = 10 m/s. Al regresar al punto exacto de partida, la posición inicial y final son idénticas (Δx = 0 m), lo que hace que la velocidad media sea vm = 0 m/s."
     },
     {
@@ -526,7 +510,7 @@
         "-55 m",
         "55 m"
       ],
-      answer: 1, // B
+      answer: 1,
       explanation: "Sustituyendo t = 10 s directamente en la ecuación lineal de posición: x(10) = -15 + 4(10) = -15 + 40 = 25 m."
     },
     {
@@ -538,7 +522,7 @@
         "La velocidad",
         "El punto del sistema de referencia"
       ],
-      answer: 2, // C
+      answer: 2,
       explanation: "La pendiente de una recta es m = Δy / Δx. En una gráfica x-t, esto corresponde al cambio de posición entre el cambio de tiempo (Δx / Δt), que es la definición matemática de la velocidad."
     },
     {
@@ -550,7 +534,7 @@
         "El objeto experimenta aceleración constante.",
         "El objeto avanza a su velocidad máxima."
       ],
-      answer: 1, // B
+      answer: 1,
       explanation: "Una línea horizontal en x-t significa que la posición no varía a medida que avanza el tiempo (Δx = 0). Dado que la pendiente es cero, la velocidad es 0 m/s; el objeto está en reposo."
     },
     {
@@ -562,7 +546,7 @@
         "22.5 s",
         "15 s"
       ],
-      answer: 1, // B
+      answer: 1,
       explanation: "El desplazamiento necesario es Δx = xf - x₀ = 450 m - 50 m = 400 m. Aplicando el despeje de tiempo en MRU (t = Δx / v): t = 400 m / 20 m/s = 20 s."
     },
     {
@@ -574,7 +558,7 @@
         "Que la distancia recorrida es menor que cero.",
         "Que la masa del cuerpo produce una fuerza retardadora."
       ],
-      answer: 1, // B
+      answer: 1,
       explanation: "En física vectorial 1D, el signo algebraico en magnitudes como la velocidad no indica que el objeto esté frenando, sino el sentido de su movimiento respecto al sistema de coordenadas adoptado."
     },
     {
@@ -586,19 +570,19 @@
         "-4 m/s",
         "-2 m/s"
       ],
-      answer: 2, // C
+      answer: 2,
       explanation: "El desplazamiento total es Δx = xf - x₀ = (-10 m) - (30 m) = -40 m. Al dividirlo entre el intervalo de tiempo transcurrido (10 s), obtenemos: vm = -40 m / 10 s = -4 m/s."
     },
     {
       topic: "Análisis de Tablas de Datos",
-      question: "Se registra el movimiento rectilíneo de un móvil y se obtiene la siguiente tabla:<br><table class='data-table'><thead><tr><th>Tiempo (t)</th><th>Posición (x)</th></tr></thead><tbody><tr><td>0 s</td><td>10 m</td></tr><tr><td>3 s</td><td>22 m</td></tr><tr><td>6 s</td><td>34 m</td></tr></tbody></table>¿Cuál es la velocidad constante del móvil?",
+      question: "Se registra el movimiento rectilíneo de un móvil y se obtiene la siguiente tabla:<div class='table-responsive-wrapper'><table class='data-table'><thead><tr><th>Tiempo (t)</th><th>Posición (x)</th></tr></thead><tbody><tr><td>0 s</td><td>10 m</td></tr><tr><td>3 s</td><td>22 m</td></tr><tr><td>6 s</td><td>34 m</td></tr></tbody></table></div>¿Cuál es la velocidad constante del móvil?",
       options: [
         "3 m/s",
         "4 m/s",
         "6 m/s",
         "12 m/s"
       ],
-      answer: 1, // B
+      answer: 1,
       explanation: "Tomando el primer intervalo entre t = 0 s y t = 3 s: v = Δx / Δt = (22 m - 10 m) / (3 s - 0 s) = 12 m / 3 s = 4 m/s. (Nota que se mantiene igual entre 3 s y 6 s: 12 m / 3 s = 4 m/s)."
     }
   ];
