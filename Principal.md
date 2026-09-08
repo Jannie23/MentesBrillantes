@@ -5,13 +5,7 @@
   # <font color="#9333ea">✨ Cuestionarios Interactivos</font>
 
   <p align="center">
-    <b>Plataforma de simulación y práctica continua para exámenes de admisión</b>
-  </p>
-
-  <p align="center">
-    <img src="https://img.shields.io/badge/Estilo-Base%20Principal-ff007f?style=for-the-badge" alt="Base Principal">
-    <img src="https://img.shields.io/badge/Estado-Activo-10b981?style=for-the-badge" alt="Estado Activo">
-    <img src="https://img.shields.io/badge/Interfaz-Responsiva-00b4d8?style=for-the-badge" alt="Responsivo">
+    <b> Cuestionarios para práctica continua para exámenes de admisión </b>
   </p>
 
   ---
@@ -42,8 +36,4 @@ Cuestionarios orientados al examen de admisión para nivel universitario.
 
 ---
 
-<div align="center">
-  <blockquote style="background: #f3e8ff; border-left: 4px solid #9333ea; padding: 10px;">
-    <b>🎨 Paleta Base Principal:</b> <font color="#ff007f"><b>Pink Neón</b></font> • <font color="#9333ea"><b>Purple Neón</b></font> • <font color="#00b4d8"><b>Blue Neón</b></font> • <font color="#10b981"><b>Green Neón</b></font>
-  </blockquote>
-</div>
+   
