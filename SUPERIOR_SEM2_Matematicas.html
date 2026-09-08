@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Matemáticas - ECOEMS</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --text-main: #18181b;
+      --text-muted: #4b5563;
+
+      --neon-pink: #ff007f;
+      --pastel-pink: #fdf2f8;
+      --neon-purple: #9333ea;
+      --pastel-purple: #f3e8ff;
+      --neon-blue: #00b4d8;
+      --pastel-blue: #e0f2fe;
+      --neon-green: #10b981;
+      --pastel-green: #d1fae5;
+      --neon-red: #f43f5e;
+      --pastel-red: #ffe4e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(8px, 2vw, 24px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      width: 100%;
+      max-width: 1300px;
+      min-height: min(92vh, 920px);
+      border-radius: clamp(16px, 3vw, 32px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-purple);
+      box-shadow: 0 20px 40px rgba(147, 51, 234, 0.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+    }
+
+    /* Cabecera responsiva con logo integrado */
+    .progress-header {
+      padding: clamp(14px, 2.5vw, 24px) clamp(16px, 3.5vw, 40px);
+      background: linear-gradient(90deg, #fdf2f8, #f5f3ff, #ecfeff);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-pink);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(12px, 3vw, 30px);
+      flex-wrap: wrap;
+      font-size: clamp(1rem, 1.3vw, 1.25rem);
+      color: var(--neon-purple);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .top-brand-logo img {
+      height: clamp(38px, 6vw, 75px);
+      width: auto;
+      object-fit: contain;
+      background: transparent;
+      mix-blend-mode: multiply;
+      filter: contrast(1.1) drop-shadow(0 4px 10px rgba(147, 51, 234, 0.15));
+      transition: transform 0.3s ease;
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.05);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.2vw, 16px);
+      background-color: var(--pastel-purple);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1px solid #d8b4fe;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 10%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      transition: width 0.4s ease;
+    }
+
+    /* Cuerpo adaptable */
+    .quiz-body {
+      padding: clamp(16px, 3vw, 40px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 1vw, 0.95rem);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px clamp(12px, 1.8vw, 20px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: clamp(12px, 1.8vw, 20px);
+    }
+
+    .question-text {
+      font-size: clamp(1.1rem, 1.6vw, 1.55rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2.2vw, 28px);
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: clamp(10px, 1.5vw, 18px);
+      margin-bottom: clamp(16px, 2vw, 24px);
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: clamp(2px, 0.25vw, 3px) solid #e9d5ff;
+      border-radius: clamp(12px, 1.5vw, 18px);
+      padding: clamp(12px, 1.5vw, 18px) clamp(14px, 1.8vw, 20px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-2px);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-purple);
+      background-color: var(--pastel-purple);
+      color: var(--neon-purple);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
+      width: clamp(32px, 3.5vw, 42px);
+      height: clamp(32px, 3.5vw, 42px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+      color: var(--neon-purple);
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-purple);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #065f46 !important;
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #9f1239 !important;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 2vw, 22px);
+      border-radius: clamp(12px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 2vw, 22px);
+      display: none;
+      animation: fadeIn 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+    }
+
+    .feedback-panel.success {
+      background-color: #ecfdf5;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #065f46;
+    }
+
+    .feedback-panel.error {
+      background-color: #fff1f2;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #9f1239;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.2vw, 1.2rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .action-btn {
+      padding: clamp(10px, 1.5vw, 14px) clamp(22px, 3vw, 36px);
+      font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(10px, 1.2vw, 14px);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      letter-spacing: 0.5px;
+      width: auto;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+    .btn-check:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+    }
+    .btn-next:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    /* Pantalla final adaptable */
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(30px, 5vw, 60px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.7rem);
+      color: var(--neon-purple);
+      font-weight: 900;
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 8vw, 5.5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 2vw, 20px) 0;
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.4vw, 1.3rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 3vw, 36px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: clamp(12px, 1.8vw, 16px) clamp(28px, 4vw, 42px);
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+    }
+    .btn-restart:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 10</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Texto del reactivo</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 10</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      topic: "Multiplicación de polinomios",
+      question: "Simplifica la siguiente expresión:<br>(3x − 2)(x² + 3x − 4) − (x + 3)(3x² − 2x + 1)",
+      options: [
+        "6x² − 25x + 5",
+        "4x² − 15x − 11",
+        "6x² − 19x + 11",
+        "4x² − 25x + 5"
+      ],
+      answer: 0,
+      explanation: "P₁ = 3x³ + 7x² − 18x + 8; P₂ = 3x³ + 7x² − 5x + 3. Al restar P₁ − P₂: (3x³ − 3x³) + (7x² − x²) + (−18x − 7x) + (8 − 3) = 6x² − 25x + 5."
+    },
+    {
+      topic: "Operaciones combinadas de polinomios",
+      question: "Al simplificar la expresión (2x + 1)(2x − 1)(x² + 4) − (4x⁴ − 3x² + 5), se obtiene:",
+      options: [
+        "18x² − 9",
+        "12x² − 9",
+        "18x² + 1",
+        "−12x² − 1"
+      ],
+      answer: 0,
+      explanation: "(2x + 1)(2x − 1) = 4x² − 1. Luego (4x² − 1)(x² + 4) = 4x⁴ + 15x² − 4. Al restar: (4x⁴ + 15x² − 4) − (4x⁴ − 3x² + 5) = 18x² − 9."
+    },
+    {
+      topic: "Productos notables y diferencias de cubos",
+      question: "Determina el polinomio reducido correspondiente a:<br>(x − 4)(x² + 4x + 16) − (x − 2)(x² + 2x + 4)",
+      options: [
+        "−56",
+        "−72",
+        "2x³ − 72",
+        "−56 − 12"
+      ],
+      answer: 0,
+      explanation: "Corresponde a diferencias de cubos directas: (x³ − 4³) − (x³ − 2³) = (x³ − 64) − (x³ − 8) = −64 + 8 = −56."
+    },
+    {
+      topic: "Suma y resta de complejos",
+      question: "Calcula el resultado de la siguiente operación:<br>(9 − 4i) − [5 + 3i − (−2 + 7i)]",
+      options: [
+        "2 − 8i",
+        "2",
+        "6 − 14i",
+        "−4 − 8i"
+      ],
+      answer: 1,
+      explanation: "Interior del corchete: 5 + 3i + 2 − 7i = 7 − 4i. Operación final: (9 − 4i) − (7 − 4i) = 9 − 7 − 4i + 4i = 2."
+    },
+    {
+      topic: "Operaciones y conjugado en complejos",
+      question: "Sean w₁ = 5 − 3i, w₂ = −2 + 6i y w₃ = 4 − i. Calcula (w₁ − w₂) − (w₃ − w̄₁), donde w̄₁ es el conjugado de w₁:",
+      options: [
+        "8 − 5i",
+        "6 + 11i",
+        "8 + 11i",
+        "6 + 5i"
+      ],
+      answer: 0,
+      explanation: "w̄₁ = 5 + 3i. Primer bloque: w₁ − w₂ = (5 − (−2)) + (−3 − 6)i = 7 − 9i. Segundo bloque: w₃ − w̄₁ = (4 − 5) + (−1 − 3)i = −1 − 4i. Resta total: (7 − 9i) − (−1 − 4i) = 8 − 5i."
+    },
+    {
+      topic: "División de números complejos",
+      question: "Simplifica a la forma binómica a + bi la expresión:<br>(5 + 5i) / (2 − i)",
+      options: [
+        "1 + 3i",
+        "3 + i",
+        "1 − 3i",
+        "5/3 + 5i"
+      ],
+      answer: 0,
+      explanation: "Multiplicando numerador y denominador por el conjugado (2 + i): [(5 + 5i)(2 + i)] / (2² + 1²) = (10 + 5i + 10i − 5) / 5 = (5 + 15i) / 5 = 1 + 3i."
+    },
+    {
+      topic: "Multiplicación y resta de complejos",
+      question: "Sean z₁ = 2 − 3i y z₂ = 1 + 2i. Calcula el valor de:<br>z₁ · z₂ − (z₁ − z₂)",
+      options: [
+        "9 + 6i",
+        "7 + 6i",
+        "7 − 4i",
+        "9 − 4i"
+      ],
+      answer: 1,
+      explanation: "z₁ · z₂ = (2 − 3i)(1 + 2i) = 2 + 4i − 3i + 6 = 8 + i. Por otra parte: z₁ − z₂ = (2 − 1) + (−3 − 2)i = 1 − 5i. Resta: (8 + i) − (1 − 5i) = 7 + 6i."
+    },
+    {
+      topic: "Potencias de i y división",
+      question: "Determina el valor exacto de:<br>[10 / (3 + i)] + i³⁵",
+      options: [
+        "3 − 2i",
+        "3",
+        "3 + 2i",
+        "1 − i"
+      ],
+      answer: 0,
+      explanation: "10 / (3 + i) = 10(3 − i) / (3² + 1²) = 10(3 − i) / 10 = 3 − i. Como 35 mod 4 = 3, i³⁵ = i³ = −i. Sumando: (3 − i) + (−i) = 3 − 2i."
+    },
+    {
+      topic: "Leyes de los exponentes racionales",
+      question: "Para x > 0, simplifica la siguiente expresión:<br>[(x^(4/3) · x^(−1/2))³] / x^(3/2)",
+      options: [
+        "x",
+        "x^(1/2)",
+        "x²",
+        "x^(5/6)"
+      ],
+      answer: 0,
+      explanation: "Suma dentro del paréntesis: 4/3 − 1/2 = 5/6. Al elevar al cubo: (x^(5/6))³ = x^(15/6) = x^(5/2). Dividiendo entre el denominador: x^(5/2 − 3/2) = x^(2/2) = x¹ = x."
+    },
+    {
+      topic: "Raíces y exponentes racionales",
+      question: "Para x > 0, encuentra la expresión equivalente irreducible de:<br>∛(x² · √x) / (x^(1/4))²",
+      options: [
+        "x^(1/3)",
+        "x^(5/6)",
+        "x^(1/6)",
+        "x^(7/12)"
+      ],
+      answer: 0,
+      explanation: "Radicando del numerador: x² · x^(1/2) = x^(5/2). Raíz cúbica: (x^(5/2))^(1/3) = x^(5/6). Denominador: x^(2/4) = x^(1/2) = x^(3/6). Cociente: x^(5/6 − 3/6) = x^(2/6) = x^(1/3)."
+    }
+  ];
+
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const restartBtn = document.getElementById("restartBtn");
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "✓ ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "✕ Respuesta incorrecta";
+      feedbackText.innerHTML = `<strong>Solución analítica:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 10) {
+      msg = "¡Desempeño perfecto! Dominas con precisión el álgebra de polinomios, números complejos y leyes de exponentes.";
+    } else if (score >= 7) {
+      msg = "¡Muy buen puntaje! Cuentas con un nivel sólido para el examen, solo afina detalles en operaciones con números complejos y fracciones algebraicas.";
+    } else if (score >= 5) {
+      msg = "Buen avance. Se recomienda repasar la multiplicación con números complejos y simplificación de exponentes racionales.";
+    } else {
+      msg = "Es prioritario repasar productos notables, leyes de exponentes y operaciones básicas con números complejos.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  function restartQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", restartQuiz);
+
+  loadQuestion();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Física: Vectores y Leyes de Newton - ECOEMS</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --text-main: #18181b;
+      --text-muted: #4b5563;
+
+      --neon-pink: #ff007f;
+      --pastel-pink: #fdf2f8;
+      --neon-purple: #9333ea;
+      --pastel-purple: #f3e8ff;
+      --neon-blue: #00b4d8;
+      --pastel-blue: #e0f2fe;
+      --neon-green: #10b981;
+      --pastel-green: #d1fae5;
+      --neon-red: #f43f5e;
+      --pastel-red: #ffe4e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(8px, 2vw, 24px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      width: 100%;
+      max-width: 1300px;
+      min-height: min(92vh, 920px);
+      border-radius: clamp(16px, 3vw, 32px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-purple);
+      box-shadow: 0 20px 40px rgba(147, 51, 234, 0.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+    }
+
+    /* Cabecera responsiva con logo integrado */
+    .progress-header {
+      padding: clamp(14px, 2.5vw, 24px) clamp(16px, 3.5vw, 40px);
+      background: linear-gradient(90deg, #fdf2f8, #f5f3ff, #ecfeff);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-pink);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(12px, 3vw, 30px);
+      flex-wrap: wrap;
+      font-size: clamp(1rem, 1.3vw, 1.25rem);
+      color: var(--neon-purple);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .top-brand-logo img {
+      height: clamp(38px, 6vw, 75px);
+      width: auto;
+      object-fit: contain;
+      background: transparent;
+      mix-blend-mode: multiply;
+      filter: contrast(1.1) drop-shadow(0 4px 10px rgba(147, 51, 234, 0.15));
+      transition: transform 0.3s ease;
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.05);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.2vw, 16px);
+      background-color: var(--pastel-purple);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1px solid #d8b4fe;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 10%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      transition: width 0.4s ease;
+    }
+
+    /* Cuerpo adaptable */
+    .quiz-body {
+      padding: clamp(16px, 3vw, 40px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 1vw, 0.95rem);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px clamp(12px, 1.8vw, 20px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: clamp(12px, 1.8vw, 20px);
+    }
+
+    .question-text {
+      font-size: clamp(1.1rem, 1.6vw, 1.55rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2.2vw, 28px);
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: clamp(10px, 1.5vw, 18px);
+      margin-bottom: clamp(16px, 2vw, 24px);
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: clamp(2px, 0.25vw, 3px) solid #e9d5ff;
+      border-radius: clamp(12px, 1.5vw, 18px);
+      padding: clamp(12px, 1.5vw, 18px) clamp(14px, 1.8vw, 20px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-2px);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-purple);
+      background-color: var(--pastel-purple);
+      color: var(--neon-purple);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
+      width: clamp(32px, 3.5vw, 42px);
+      height: clamp(32px, 3.5vw, 42px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+      color: var(--neon-purple);
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-purple);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #065f46 !important;
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #9f1239 !important;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 2vw, 22px);
+      border-radius: clamp(12px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 2vw, 22px);
+      display: none;
+      animation: fadeIn 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+    }
+
+    .feedback-panel.success {
+      background-color: #ecfdf5;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #065f46;
+    }
+
+    .feedback-panel.error {
+      background-color: #fff1f2;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #9f1239;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.2vw, 1.2rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .action-btn {
+      padding: clamp(10px, 1.5vw, 14px) clamp(22px, 3vw, 36px);
+      font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(10px, 1.2vw, 14px);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      letter-spacing: 0.5px;
+      width: auto;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+    .btn-check:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+    }
+    .btn-next:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    /* Pantalla final adaptable */
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(30px, 5vw, 60px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.7rem);
+      color: var(--neon-purple);
+      font-weight: 900;
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 8vw, 5.5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 2vw, 20px) 0;
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.4vw, 1.3rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 3vw, 36px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: clamp(12px, 1.8vw, 16px) clamp(28px, 4vw, 42px);
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+    }
+    .btn-restart:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 10</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Texto del reactivo</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 10</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      topic: "Álgebra vectorial: Ángulo y dirección",
+      question: "Un vector en el plano bidimensional está dado por A = −4î + 3ĵ unidades. ¿Cuál es su magnitud y su dirección (θ) medida en sentido antihorario a partir del semieje positivo de las x? (Considere arctan(0.75) ≈ 36.87°).",
+      options: [
+        "|A| = 5 u ; θ = 36.87°",
+        "|A| = 5 u ; θ = 143.13°",
+        "|A| = 7 u ; θ = 143.13°",
+        "|A| = 5 u ; θ = 216.87°"
+      ],
+      answer: 1,
+      explanation: "Magnitud: √((−4)² + 3²) = √(16 + 9) = 5 u. Dado que Ax < 0 y Ay > 0, el vector pertenece al Cuadrante II: θ = 180° − 36.87° = 143.13°."
+    },
+    {
+      topic: "Álgebra vectorial: Ortogonalidad",
+      question: "Dados los vectores u = 3î − 2ĵ + 4k̂ y v = 2î + αĵ − 2k̂, determine el valor que debe tomar el parámetro escalar α para que ambos vectores sean estrictamente ortogonales entre sí.",
+      options: [
+        "α = −1",
+        "α = 1",
+        "α = 7",
+        "α = −7"
+      ],
+      answer: 0,
+      explanation: "Condición de ortogonalidad (u · v = 0): (3)(2) + (−2)(α) + (4)(−2) = 0 → 6 − 2α − 8 = 0 → −2 − 2α = 0 → α = −1."
+    },
+    {
+      topic: "Producto cruz y geometría",
+      question: "Si los vectores A y B forman los lados adyacentes de un triángulo plano con |A| = 6 cm, |B| = 8 cm y el ángulo comprendido entre ellos es de 30°, ¿cuál es el área de dicho triángulo y qué valor arroja el producto escalar A · B? (Tome cos 30° ≈ 0.866).",
+      options: [
+        "Área = 24 cm² ; A · B = 24",
+        "Área = 12 cm² ; A · B ≈ 41.57",
+        "Área = 12 cm² ; A · B = 24",
+        "Área = 24 cm² ; A · B ≈ 41.57"
+      ],
+      answer: 1,
+      explanation: "Área del triángulo = ½ |A||B| sen(30°) = ½(6)(8)(0.5) = 12 cm². Producto escalar: A · B = |A||B| cos(30°) = (48)(0.866) ≈ 41.57."
+    },
+    {
+      topic: "Estado de movimiento e inercia",
+      question: "Un bloque de masa m = 5 kg se desliza sobre una superficie horizontal perfectamente lisa (sin rozamiento) con una velocidad constante de 12 m/s hacia el este. ¿Cuál es la fuerza horizontal neta necesaria para mantenerlo indefinidamente en dicho movimiento?",
+      options: [
+        "60 N hacia el este",
+        "49 N hacia el este",
+        "0 N",
+        "2.4 N hacia el este"
+      ],
+      answer: 2,
+      explanation: "De acuerdo con la Primera Ley de Newton (Inercia), todo cuerpo mantiene su estado de movimiento rectilíneo uniforme si la fuerza neta que actúa sobre él es nula (0 N)."
+    },
+    {
+      topic: "Dinámica: Impulso y cantidad de movimiento",
+      question: "Una pelota de tenis de masa m = 0.06 kg llega horizontalmente a la raqueta con una velocidad de 25 m/s y es devuelta en sentido exactamente opuesto a 35 m/s. Si el impacto con el encordado dura Δt = 0.005 s, la magnitud de la fuerza media ejercida por la raqueta sobre la pelota es:",
+      options: [
+        "120 N",
+        "360 N",
+        "720 N",
+        "600 N"
+      ],
+      answer: 2,
+      explanation: "Cambio de velocidad vectorial: Δv = vf − vi = 35 − (−25) = 60 m/s. Fuerza media: F = m(Δv) / Δt = (0.06 kg)(60 m/s) / 0.005 s = 3.6 / 0.005 = 720 N."
+    },
+    {
+      topic: "Estructura elástica y Ley de Hooke",
+      question: "Un resorte ideal se deforma elásticamente 4 cm cuando se suspende de él una masa de 2 kg (g = 10 m/s²). Si se reemplaza dicha masa por una de 5 kg dentro del régimen elástico proporcional, ¿cuál será la elongación total del resorte y su constante elástica k?",
+      options: [
+        "Δx = 10 cm ; k = 500 N/m",
+        "Δx = 8 cm ; k = 50 N/m",
+        "Δx = 10 cm ; k = 200 N/m",
+        "Δx = 6 cm ; k = 500 N/m"
+      ],
+      answer: 0,
+      explanation: "Fuerza 1 = (2 kg)(10 m/s²) = 20 N con Δx₁ = 0.04 m → k = 20 / 0.04 = 500 N/m. Para 5 kg (50 N): Δx₂ = F₂ / k = 50 / 500 = 0.1 m = 10 cm."
+    },
+    {
+      topic: "Tercera Ley de Newton (Acción y Reacción)",
+      question: "Un camión de 4000 kg colisiona frontalmente contra un automóvil compacto de 1000 kg en una carretera. Durante el instante del choque, respecto a las magnitudes de las fuerzas que se ejercen mutuamente y las aceleraciones que adquieren:",
+      options: [
+        "El camión ejerce 4 veces más fuerza sobre el auto.",
+        "Las fuerzas son iguales en magnitud, pero el auto adquiere 4 veces más aceleración.",
+        "Las fuerzas y aceleraciones son idénticas para ambos vehículos.",
+        "El auto experimenta una fuerza 4 veces menor y la cuarta parte de la aceleración."
+      ],
+      answer: 1,
+      explanation: "Por Tercera Ley de Newton, las fuerzas de acción y reacción son idénticas en magnitud. Por Segunda Ley (a = F / m), como el auto tiene ¼ de la masa, adquiere 4 veces más aceleración."
+    },
+    {
+      topic: "Naturaleza de las fuerzas fundamentales",
+      question: "Cuando una persona se apoya firmemente sobre una mesa de madera, la fuerza Normal que impide que su mano atraviese la superficie tiene como causa microscópica fundamental:",
+      options: [
+        "La atracción gravitacional mutua entre las masas de los átomos en contacto.",
+        "El confinamiento de gluones y quarks mediante la fuerza nuclear fuerte.",
+        "La repulsión electrostática entre las nubes electrónicas de los átomos superficiales.",
+        "El intercambio de bosones débiles que estabiliza la celulosa de la madera."
+      ],
+      answer: 2,
+      explanation: "La fuerza normal y todas las fuerzas de contacto ordinarias son manifestaciones macroscópicas de la interacción electromagnética (repulsión entre electrones superficiales)."
+    },
+    {
+      topic: "Carácter vectorial en plano inclinado",
+      question: "Un bloque de masa m = 10 kg reposa en equilibrio sobre un plano inclinado con ángulo θ = 30° respecto a la horizontal (g = 10 m/s², sen 30° = 0.5, cos 30° = 0.866). Si el coeficiente de fricción estática máximo es μs = 0.8, ¿cuál es la magnitud de la fuerza de fricción estática real que actúa sobre el cuerpo?",
+      options: [
+        "69.28 N",
+        "80.00 N",
+        "50.00 N",
+        "43.30 N"
+      ],
+      answer: 2,
+      explanation: "La componente del peso paralela al plano es mg sen(30°) = (10)(10)(0.5) = 50 N. La fricción estática máxima disponible es fs_max = μs(mg cos 30°) = 0.8(86.6) = 69.28 N. Al estar en equilibrio, la fricción estática real iguala exactamente a la fuerza que intenta moverlo: 50 N."
+    },
+    {
+      topic: "Equilibrio traslacional de fuerzas",
+      question: "Sobre una partícula puntual actúan tres fuerzas coplanares en equilibrio traslacional. Dos de ellas son F₁ = 30î N y F₂ = 40ĵ N. ¿Cuál es la magnitud y dirección de la tercera fuerza equilibrante F₃ medida desde el semieje +x?",
+      options: [
+        "50 N a 53.13° (Cuadrante I)",
+        "70 N a 233.13° (Cuadrante III)",
+        "50 N a 233.13° (Cuadrante III)",
+        "10 N a 180.00° (Eje −x)"
+      ],
+      answer: 2,
+      explanation: "La resultante de las dos primeras es R = 30î + 40ĵ con magnitud √(30² + 40²) = 50 N a θ = arctan(40/30) = 53.13°. Para equilibrar el sistema, F₃ = −R = −30î − 40ĵ: magnitud 50 N y dirección 53.13° + 180° = 233.13° (Cuadrante III)."
+    }
+  ];
+
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const restartBtn = document.getElementById("restartBtn");
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "✓ ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "✕ Respuesta incorrecta";
+      feedbackText.innerHTML = `<strong>Solución analítica:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 10) {
+      msg = "¡Puntaje perfecto! Dominas con precisión los métodos vectoriales, las Leyes de Newton y las condiciones de equilibrio estático.";
+    } else if (score >= 7) {
+      msg = "¡Gran trabajo! Tienes bases sólidas en física estática y dinámica. Revisa con cuidado el cálculo de fricción real y vectores equilibrantes.";
+    } else if (score >= 5) {
+      msg = "Buen intento. Te sugerimos repasar la descomposición de fuerzas en planos inclinados y la diferencia entre producto escalar y vectorial.";
+    } else {
+      msg = "Es indispensable reforzar conceptos vectoriales básicos, leyes de Newton y la relación entre fuerza de rozamiento e inercia.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  function restartQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", restartQuiz);
+
+  loadQuestion();
+</script>
+
+</body>
+</html>
