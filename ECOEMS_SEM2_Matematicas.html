@@ -14,13 +14,11 @@
     }
 
     :root {
-      /* Fondo dinámico y multicolor */
       --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
       --card-bg: rgba(255, 255, 255, 0.92);
       --text-main: #18181b;
       --text-muted: #4b5563;
 
-      /* Paleta Neón / Pastel Saturado */
       --neon-pink: #ff007f;
       --pastel-pink: #fdf2f8;
       --neon-purple: #9333ea;
@@ -53,7 +51,6 @@
       padding: 24px;
     }
 
-    /* Logo Superior Derecho: Fundido directamente con el fondo y sin marcos ni bordes duros */
     .top-brand-logo {
       position: absolute;
       top: 28px;
@@ -75,7 +72,6 @@
       background: transparent;
       border: none;
       outline: none;
-      /* Modo de fusión para desaparecer bordes claros/blancos y fundir sobre el fondo */
       mix-blend-mode: multiply;
       filter: contrast(1.1) drop-shadow(0 4px 12px rgba(147, 51, 234, 0.18));
       transition: transform 0.3s ease;
@@ -86,7 +82,6 @@
       transform: scale(1.05);
     }
 
-    /* Contenedor Full Page */
     .quiz-container {
       background: var(--card-bg);
       backdrop-filter: blur(16px);
@@ -103,12 +98,11 @@
       margin: auto;
     }
 
-    /* Barra de progreso */
     .progress-header {
       padding: 32px 48px 20px;
       background: linear-gradient(90deg, #fdf2f8, #f5f3ff, #ecfeff);
       border-bottom: 3px solid var(--neon-pink);
-      padding-right: 280px; /* Margen para respetar el logo fundido */
+      padding-right: 280px;
     }
 
     .progress-info {
@@ -138,7 +132,6 @@
       transition: width 0.4s ease;
     }
 
-    /* Contenido principal */
     .quiz-body {
       padding: 40px 60px;
       flex-grow: 1;
@@ -171,7 +164,6 @@
       margin-bottom: 32px;
     }
 
-    /* Opciones */
     .options-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
@@ -229,12 +221,12 @@
       color: #ffffff;
     }
 
-    /* Retroalimentación */
     .option-btn.correct {
       background-color: var(--pastel-green) !important;
       border-color: var(--neon-green) !important;
       color: #065f46 !important;
     }
+
     .option-btn.correct .option-prefix {
       background: var(--neon-green);
       border-color: var(--neon-green);
@@ -246,6 +238,7 @@
       border-color: var(--neon-red) !important;
       color: #9f1239 !important;
     }
+
     .option-btn.incorrect .option-prefix {
       background: var(--neon-red);
       border-color: var(--neon-red);
@@ -283,7 +276,6 @@
       font-size: 1.45rem;
     }
 
-    /* Botones de acción */
     .quiz-footer {
       display: flex;
       justify-content: flex-end;
@@ -306,10 +298,12 @@
       background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
       color: #ffffff;
     }
+
     .btn-check:hover:not(:disabled) {
       transform: translateY(-2px);
       filter: brightness(1.1);
     }
+
     .btn-check:disabled {
       background: #e2e8f0;
       color: #94a3b8;
@@ -321,12 +315,12 @@
       color: #ffffff;
       display: none;
     }
+
     .btn-next:hover {
       transform: translateY(-2px);
       filter: brightness(1.1);
     }
 
-    /* Pantalla de Resultados */
     .result-screen {
       display: none;
       text-align: center;
@@ -365,6 +359,7 @@
       padding: 18px 48px;
       font-size: 1.35rem;
     }
+
     .btn-restart:hover {
       transform: scale(1.05);
       filter: brightness(1.1);
@@ -407,7 +402,6 @@
 </head>
 <body>
 
-<!-- Logo Esquina Superior Derecha: Fundido e integrado naturalmente -->
 <div class="top-brand-logo">
   <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
 </div>
