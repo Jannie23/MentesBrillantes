@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador de Matemáticas: Álgebra y Teoremas - ECOEMS</title>
+  <title>Simulador de Física: Dinámica y Primera Ley - ECOEMS</title>
   <style>
     @font-face {
       font-family: 'Mogena';
@@ -422,124 +422,124 @@
 <script>
   const questions = [
     {
-      topic: "Operaciones con Radicales",
-      question: "Simplifica la siguiente expresión con radicales: 5√18 − 3√8 + √50",
+      topic: "Superposición de Fuerzas",
+      question: "Sobre un bloque actúan tres fuerzas simultáneas: F₁ = (15î − 8ĵ) N, F₂ = (−10î + 14ĵ) N y F₃ = (−5î − 6ĵ) N. ¿Cuál es el vector de la fuerza resultante Fᵣ?",
       options: [
-        "14√2",
-        "12√2",
-        "10√2",
-        "16√2"
+        "Fᵣ = 0î + 0ĵ N",
+        "Fᵣ = 30î + 12ĵ N",
+        "Fᵣ = 5î + 0ĵ N",
+        "Fᵣ = 0î + 20ĵ N"
       ],
       answer: 0,
-      explanation: "Descomponiendo las raíces en factores primos[cite: 4]: √18 = √(9·2) = 3√2, √8 = √(4·2) = 2√2, y √50 = √(25·2) = 5√2. Sustituyendo y agrupando términos semejantes[cite: 4]: 5(3√2) − 3(2√2) + 5√2 = 15√2 − 6√2 + 5√2 = (15 − 6 + 5)√2 = 14√2."
+      explanation: "Sumando componentes en x: ΣFₓ = 15 − 10 − 5 = 0 N[cite: 3]. Sumando componentes en y: ΣFᵧ = −8 + 14 − 6 = 0 N[cite: 3]. Por lo tanto, el vector resultante es Fᵣ = 0î + 0ĵ N[cite: 3]."
     },
     {
-      topic: "Binomio de Newton",
-      question: "¿Cuál es el coeficiente del término con x³ en el desarrollo del binomio (x + 2)⁵?",
+      topic: "Primera Ley de Newton: Inercia",
+      question: "Un satélite de comunicación se desplaza en una zona del espacio profundo donde las fuerzas gravitacionales residuales se cancelan, resultando en una fuerza neta igual a cero. ¿Qué ocurrirá con su movimiento según la Primera Ley de Newton?",
       options: [
-        "40",
-        "80",
-        "20",
-        "160"
+        "Se detendrá gradualmente debido a la ausencia de una fuerza que impulse sus motores.",
+        "Continuará moviéndose en línea recta a velocidad constante indefinidamente.",
+        "Comenzará a girar en círculos debido a la conservación natural del momento angular.",
+        "Acelerará progresivamente hacia la estrella más cercana de forma espontánea."
       ],
-      answer: 0,
-      explanation: "Utilizando la fórmula del término general T_{k+1} = C(n,k)·a^{n-k}·b^k[cite: 4], con a = x, b = 2 y n = 5. Para obtener x³, el exponente de a debe ser 3, por lo que 5 − k = 3, lo cual implica k = 2 (el término T₃)[cite: 4]. Calculando el coeficiente combinatorio C(5,2) = 10[cite: 4], se obtiene T₃ = 10·(x)³·(2)² = 10·(4)x³ = 40x³."
+      answer: 1,
+      explanation: "Si la fuerza neta es nula (Fₙₑₜₐ = 0), la aceleración es cero (a = 0)[cite: 3]. De acuerdo con la Primera Ley de Newton, el cuerpo mantiene su estado de movimiento rectilíneo uniforme (velocidad constante en magnitud y dirección)[cite: 3]."
     },
     {
-      topic: "Teorema del Residuo",
-      question: "Sea el polinomio P(x) = 3x³ − 2x² + 5x − 4. ¿Cuál es el residuo obtenido al dividir P(x) entre (x − 1)?",
+      topic: "Relación entre Masa y Peso",
+      question: "Se tienen dos objetos en un mismo laboratorio de física: el Objeto A de masa m y el Objeto B de masa 3m. Si ambos experimentan la misma aceleración gravitatoria g, ¿cuál es la relación correcta entre sus pesos?",
       options: [
-        "2",
-        "−2",
-        "4",
-        "0"
+        "El Objeto B pesa el triple que el Objeto A porque W = mg.",
+        "Ambos pesan exactamente lo mismo por estar sometidos a la misma gravedad.",
+        "El Objeto A pesa el triple porque a menor masa corresponde una mayor atracción gravitacional.",
+        "El peso del Objeto B es 9 veces mayor al depender del cuadrado de la masa."
       ],
       answer: 0,
-      explanation: "Por el Teorema del Residuo, al dividir P(x) entre (x − c), el residuo es R = P(c)[cite: 4]. Como el divisor es (x − 1), evaluamos P(1)[cite: 4]: P(1) = 3(1)³ − 2(1)² + 5(1) − 4 = 3 − 2 + 5 − 4 = 2."
+      explanation: "El peso es directamente proporcional a la masa cuando la gravedad es constante (W ∝ m)[cite: 3]. Dado que W = mg, si m₂ = 3m, entonces W₂ = 3(mg) = 3W₁[cite: 3]."
     },
     {
-      topic: "Teorema del Factor",
-      question: "Determina el valor de la constante k para que el binomio (x + 2) sea un factor exacto del polinomio P(x) = x³ + kx² + 5x + 6.",
+      topic: "Propiedades de Masa y Peso",
+      question: "Un rover de exploración espacial de 900 kg de masa es enviado desde la Tierra hacia Marte, donde la aceleración de la gravedad es aproximadamente 3.7 m/s². Al posarse en la superficie marciana, ¿qué sucede con su masa y su peso?",
       options: [
-        "3",
-        "−3",
-        "2",
-        "−2"
+        "Su masa disminuye proporcionalmente a la gravedad y su peso se mantiene invariable.",
+        "Tanto la masa como el peso disminuyen al cambiar de planeta.",
+        "Su masa permanece constante en 900 kg, mientras que su peso disminuye.",
+        "Su masa aumenta para compensar la menor atracción gravitatoria marciana."
       ],
-      answer: 0,
-      explanation: "Por el Teorema del Factor, (x − c) es un factor de P(x) si y solo si P(c) = 0[cite: 4]. Para el divisor (x + 2), evaluamos en c = −2[cite: 4]: P(−2) = (−2)³ + k(−2)² + 5(−2) + 6 = 0. Resolviendo: −8 + 4k − 10 + 6 = 0 ⇒ 4k − 12 = 0 ⇒ 4k = 12 ⇒ k = 3."
+      answer: 2,
+      explanation: "La masa es una propiedad escalar e intrínseca del cuerpo que permanece invariable en cualquier punto del universo[cite: 3]. El peso varía en función de la aceleración gravitatoria local (g), disminuyendo en Marte al tener una g menor que la Tierra[cite: 3]."
     },
     {
-      topic: "Simplificación de Fracciones Algebraicas",
-      question: "Simplifica la siguiente expresión algebraica considerando las restricciones del dominio: [(x² − 16) / (x² − 8x + 16)] · [(x − 4) / (x + 4)]",
+      topic: "Condición de Equilibrio Translacional",
+      question: "Un contenedor de carga sobre una superficie horizontal plana recibe simultáneamente dos fuerzas: F₁ = 40 N dirigida hacia el Norte y F₂ = 40 N dirigida hacia el Sur. ¿Qué afirman las leyes de la física sobre el estado de este cuerpo?",
       options: [
-        "1",
-        "(x − 4) / (x + 4)",
-        "(x + 4) / (x − 4)",
-        "x − 4"
+        "Debe estar estrictamente en reposo de forma permanente.",
+        "Se encuentra acelerando hacia el Norte porque F₁ actúa en la dirección positiva del eje.",
+        "Puede estar en reposo o moviéndose a velocidad constante en línea recta.",
+        "Se frenará hasta detenerse independientemente de su velocidad inicial."
       ],
-      answer: 0,
-      explanation: "Factorizando por completo numeradores y denominadores mediante productos notables[cite: 4]: x² − 16 = (x − 4)(x + 4) y x² − 8x + 16 = (x − 4)(x − 4)[cite: 4]. Sustituyendo en la multiplicación y cancelando factores idénticos en numerador y denominador[cite: 4]: [(x − 4)(x + 4)(x − 4)] / [(x − 4)(x − 4)(x + 4)] = 1."
+      answer: 2,
+      explanation: "Las fuerzas contrapuestas de igual magnitud se anulan, dando una fuerza neta de cero (Fₙₑₜₐ = 0)[cite: 3]. Esto cumple la condición de equilibrio translacional, lo que permite dos estados: equilibrio estático (reposo) o equilibrio dinámico (velocidad constante)[cite: 3]."
     },
     {
-      topic: "Operaciones con Radicales",
-      question: "Al simplificar la expresión con radicales √45 + 2√20 − √80, ¿qué resultado se obtiene?",
+      topic: "Superposición de Fuerzas",
+      question: "Si sobre una partícula actúan las fuerzas F₁ = (−7î + 3ĵ) N y F₂ = (9î + 2ĵ) N, ¿cuál es la magnitud exacta del vector fuerza resultante Fᵣ?",
       options: [
-        "3√5",
-        "5√5",
-        "2√5",
-        "√5"
+        "7 N",
+        "√29 N",
+        "√21 N",
+        "√145 N"
       ],
-      answer: 0,
-      explanation: "Extrayendo factores de cada radical[cite: 4]: √45 = √(9·5) = 3√5, 2√20 = 2√(4·5) = 2(2√5) = 4√5, y √80 = √(16·5) = 4√5. Agrupando términos semejantes[cite: 4]: 3√5 + 4√5 − 4√5 = (3 + 4 − 4)√5 = 3√5."
+      answer: 1,
+      explanation: "Sumando componentes: ΣFₓ = −7 + 9 = 2 î; ΣFᵧ = 3 + 2 = 5 ĵ[cite: 3]. La fuerza resultante es Fᵣ = (2î + 5ĵ) N[cite: 3]. Su magnitud es |Fᵣ| = √(2² + 5²) = √(4 + 25) = √29 N (aproximadamente 5.38 N)."
     },
     {
-      topic: "Binomio de Newton",
-      question: "¿Cuál es el segundo término (T₂) en el desarrollo del binomio de Newton (x + 3)⁴?",
+      topic: "Naturaleza de Masa y Peso",
+      question: "Selecciona la afirmación correcta referente a las diferencias conceptuales entre masa y peso:",
       options: [
-        "12x³",
-        "4x³",
-        "36x²",
-        "6x²"
+        "La masa es una magnitud vectorial y el peso es una magnitud escalar.",
+        "La masa se mide en Newtons (N) y el peso se mide en kilogramos (kg) en el SI.",
+        "El peso puede ser cero en ausencia de gravedad, pero la masa nunca es nula para un objeto.",
+        "Ambas magnitudes varían directamente al cambiar la posición geográfica del objeto."
       ],
-      answer: 0,
-      explanation: "Aplicando la fórmula del término general T_{k+1} = C(n,k)·a^{n-k}·b^k[cite: 4]. Para el segundo término, k = 1 (ya que T₂ = T_{1+1}), con n = 4, a = x y b = 3[cite: 4]. Se calcula T₂ = C(4,1)·(x)^{4-1}·(3)¹ = 4·x³·3 = 12x³."
+      answer: 2,
+      explanation: "En ausencia de campo gravitatorio (g = 0), el peso se vuelve nulo (W = 0)[cite: 3]. Sin embargo, la masa representa la cantidad de materia e inercia, por lo que nunca cambia ni se vuelve cero[cite: 3]."
     },
     {
-      topic: "Teorema del Residuo",
-      question: "Si se divide el polinomio P(x) = x⁴ − 3x³ + 2x − 5 entre el binomio (x + 2), ¿cuál es el valor del residuo?",
+      topic: "Primera Ley de Newton: Mitos de la Dinámica",
+      question: "Un disco de hockey se desliza sobre una pista de hielo ideal donde la fricción es despreciable. Si no actúa ninguna fuerza neta sobre él en la dirección del movimiento, ¿qué fuerza es necesaria para mantenerlo con velocidad constante?",
       options: [
-        "31",
-        "21",
-        "−15",
-        "9"
+        "Una fuerza constante en la misma dirección del movimiento.",
+        "Ninguna fuerza, ya que no se requiere fuerza sostenida para mantener velocidad constante sin fricción.",
+        "Una fuerza que compense gradualmente la pérdida natural de masa del cuerpo.",
+        "Una fuerza igual al peso del disco multiplicada por su velocidad."
       ],
-      answer: 0,
-      explanation: "Aplicando el Teorema del Residuo con c = −2 (puesto que el divisor es x + 2)[cite: 4]: P(−2) = (−2)⁴ − 3(−2)³ + 2(−2) − 5. Evaluando paso a paso: 16 − 3(−8) − 4 − 5 = 16 + 24 − 4 − 5 = 31."
+      answer: 1,
+      explanation: "Es un mito común pensar que se requiere una fuerza constante para mantener el movimiento[cite: 3]. Según la Primera Ley de Newton, en ausencia de fricción o fuerza neta en contra, el objeto conservará su velocidad sin necesidad de propulsión continua[cite: 3]."
     },
     {
-      topic: "Teorema del Factor",
-      question: "¿Cuál de los siguientes binomios es un factor exacto del polinomio P(x) = x³ − 4x² + x + 6?",
+      topic: "Cálculo de Peso",
+      question: "Un instrumental científico tiene una masa de 15 kg. Si en la Luna la aceleración de la gravedad es aproximadamente 1.6 m/s², ¿cuál es el peso del instrumento en la superficie lunar?",
       options: [
-        "x − 2",
-        "x + 2",
-        "x − 3",
-        "x + 1"
+        "15 N",
+        "24 N",
+        "147 N",
+        "9.37 N"
       ],
-      answer: 0,
-      explanation: "Evaluando el polinomio con el valor de c correspondiente a cada opción según el Teorema del Factor (P(c) = 0)[cite: 4]. Para (x − 2), evaluamos en c = 2[cite: 4]: P(2) = (2)³ − 4(2)² + 2 + 6 = 8 − 16 + 2 + 6 = 0, comprobando que es un factor exacto."
+      answer: 1,
+      explanation: "Utilizando la fórmula del peso W = m · g[cite: 3]: W = (15 kg) · (1.6 m/s²) = 24 N[cite: 3]. Unidades en el Sistema Internacional: N = kg·m/s²[cite: 3]."
     },
     {
-      topic: "Simplificación de Fracciones Algebraicas",
-      question: "Simplifica la fracción algebraica (x² − 25) / (x² + 5x), considerando las restricciones del dominio:",
+      topic: "Superposición de Fuerzas: Método por Componentes",
+      question: "Al calcular la fuerza resultante de un sistema de fuerzas coplanares mediante componentes cartesianas (î, ĵ), ¿cuál de las siguientes reglas es fundamental seguir?",
       options: [
-        "(x − 5) / x",
-        "(x + 5) / x",
-        "x − 5",
-        "x / (x − 5)"
+        "Las componentes î y ĵ pueden sumarse directamente entre sí sin considerar sus ejes.",
+        "Se deben sumar por separado las componentes en î y en ĵ respetando sus signos vectoriales.",
+        "Las componentes negativas deben convertirse a positivas antes de efectuar la suma.",
+        "La fuerza resultante siempre es igual a la suma escalar directa de los módulos de cada fuerza."
       ],
-      answer: 0,
-      explanation: "Factorizando el numerador por diferencia de cuadrados[cite: 4] (x² − 25 = (x − 5)(x + 5)) y el denominador extrayendo factor común (x² + 5x = x(x + 5)). Al cancelar el factor idéntico (x + 5) en numerador y denominador[cite: 4], queda (x − 5) / x (con la restricción x ≠ 0 y x ≠ −5[cite: 4])."
+      answer: 1,
+      explanation: "Jamás deben sumarse componentes î con ĵ de forma directa porque corresponden a ejes ortogonales (perpendiculares)[cite: 3]. Se debe sumar ΣFₓ en î y ΣFᵧ en ĵ por separado, respetando estrictamente los signos algebraicos[cite: 3]."
     }
   ];
 
@@ -657,13 +657,13 @@
 
     let msg = "";
     if (score === 10) {
-      msg = "¡Puntaje perfecto! Dominas con precisión los radicales, el Binomio de Newton, los teoremas del residuo y factor, y la simplificación algebraica.";
+      msg = "¡Puntaje perfecto! Dominas con precisión la suma vectorial por componentes, la primera ley de Newton y la distinción entre masa y peso.";
     } else if (score >= 7) {
-      msg = "¡Gran trabajo! Tienes bases sólidas en álgebra. Repasa los puntos clave de fracciones algebraicas o coeficientes binomiales.";
+      msg = "¡Gran trabajo! Tienes bases sólidas en dinámica. Revisa los detalles de la suma de vectores î y ĵ o las condiciones de equilibrio.";
     } else if (score >= 5) {
-      msg = "Buen intento. Te recomendamos repasar las fórmulas de productos notables y la evaluación de polinomios.";
+      msg = "Buen intento. Te recomendamos repasar el concepto de inercia y la relación entre masa y peso en diferentes entornos.";
     } else {
-      msg = "Es importante reforzar los fundamentos de álgebra y simplificación. ¡Vuelve a repasar la ficha de estudio e inténtalo de nuevo!";
+      msg = "Es importante reforzar la superposición de fuerzas y la Primera Ley de Newton. ¡Vuelve a repasar la ficha de estudio e inténtalo de nuevo!";
     }
     finalMessage.textContent = msg;
   }
