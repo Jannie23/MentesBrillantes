@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Física: Dinámica y Primera Ley - ECOEMS</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --text-main: #18181b;
+      --text-muted: #4b5563;
+
+      --neon-pink: #ff007f;
+      --pastel-pink: #fdf2f8;
+      --neon-purple: #9333ea;
+      --pastel-purple: #f3e8ff;
+      --neon-blue: #00b4d8;
+      --pastel-blue: #e0f2fe;
+      --neon-green: #10b981;
+      --pastel-green: #d1fae5;
+      --neon-red: #f43f5e;
+      --pastel-red: #ffe4e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(8px, 2vw, 24px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      width: 100%;
+      max-width: 1300px;
+      min-height: min(92vh, 920px);
+      border-radius: clamp(16px, 3vw, 32px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-purple);
+      box-shadow: 0 20px 40px rgba(147, 51, 234, 0.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+    }
+
+    .progress-header {
+      padding: clamp(14px, 2.5vw, 24px) clamp(16px, 3.5vw, 40px);
+      background: linear-gradient(90deg, #fdf2f8, #f5f3ff, #ecfeff);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-pink);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(12px, 3vw, 30px);
+      flex-wrap: wrap;
+      font-size: clamp(1rem, 1.3vw, 1.25rem);
+      color: var(--neon-purple);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .top-brand-logo img {
+      height: clamp(38px, 6vw, 75px);
+      width: auto;
+      object-fit: contain;
+      background: transparent;
+      mix-blend-mode: multiply;
+      filter: contrast(1.1) drop-shadow(0 4px 10px rgba(147, 51, 234, 0.15));
+      transition: transform 0.3s ease;
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.05);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.2vw, 16px);
+      background-color: var(--pastel-purple);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1px solid #d8b4fe;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 10%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      transition: width 0.4s ease;
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 3vw, 40px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 1vw, 0.95rem);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px clamp(12px, 1.8vw, 20px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: clamp(12px, 1.8vw, 20px);
+    }
+
+    .question-text {
+      font-size: clamp(1.1rem, 1.6vw, 1.55rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2.2vw, 28px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: clamp(10px, 1.5vw, 18px);
+      margin-bottom: clamp(16px, 2vw, 24px);
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: clamp(2px, 0.25vw, 3px) solid #e9d5ff;
+      border-radius: clamp(12px, 1.5vw, 18px);
+      padding: clamp(12px, 1.5vw, 18px) clamp(14px, 1.8vw, 20px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-2px);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-purple);
+      background-color: var(--pastel-purple);
+      color: var(--neon-purple);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
+      width: clamp(32px, 3.5vw, 42px);
+      height: clamp(32px, 3.5vw, 42px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+      color: var(--neon-purple);
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-purple);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #065f46 !important;
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #9f1239 !important;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 2vw, 22px);
+      border-radius: clamp(12px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 2vw, 22px);
+      display: none;
+      animation: fadeIn 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+    }
+
+    .feedback-panel.success {
+      background-color: #ecfdf5;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #065f46;
+    }
+
+    .feedback-panel.error {
+      background-color: #fff1f2;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #9f1239;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.2vw, 1.2rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .action-btn {
+      padding: clamp(10px, 1.5vw, 14px) clamp(22px, 3vw, 36px);
+      font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(10px, 1.2vw, 14px);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      letter-spacing: 0.5px;
+      width: auto;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+    .btn-check:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+    }
+    .btn-next:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(30px, 5vw, 60px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.7rem);
+      color: var(--neon-purple);
+      font-weight: 900;
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 8vw, 5.5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 2vw, 20px) 0;
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.4vw, 1.3rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 3vw, 36px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: clamp(12px, 1.8vw, 16px) clamp(28px, 4vw, 42px);
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+    }
+    .btn-restart:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 10</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Texto del reactivo</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 10</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      topic: "Superposición de Fuerzas",
+      question: "Sobre un bloque actúan tres fuerzas simultáneas: F₁ = (15î − 8ĵ) N, F₂ = (−10î + 14ĵ) N y F₃ = (−5î − 6ĵ) N. ¿Cuál es el vector de la fuerza resultante Fᵣ?",
+      options: [
+        "Fᵣ = 0î + 0ĵ N",
+        "Fᵣ = 30î + 12ĵ N",
+        "Fᵣ = 5î + 0ĵ N",
+        "Fᵣ = 0î + 20ĵ N"
+      ],
+      answer: 0,
+      explanation: "Sumando componentes en x: ΣFₓ = 15 − 10 − 5 = 0 N[cite: 3]. Sumando componentes en y: ΣFᵧ = −8 + 14 − 6 = 0 N[cite: 3]. Por lo tanto, el vector resultante es Fᵣ = 0î + 0ĵ N[cite: 3]."
+    },
+    {
+      topic: "Primera Ley de Newton: Inercia",
+      question: "Un satélite de comunicación se desplaza en una zona del espacio profundo donde las fuerzas gravitacionales residuales se cancelan, resultando en una fuerza neta igual a cero. ¿Qué ocurrirá con su movimiento según la Primera Ley de Newton?",
+      options: [
+        "Se detendrá gradualmente debido a la ausencia de una fuerza que impulse sus motores.",
+        "Continuará moviéndose en línea recta a velocidad constante indefinidamente.",
+        "Comenzará a girar en círculos debido a la conservación natural del momento angular.",
+        "Acelerará progresivamente hacia la estrella más cercana de forma espontánea."
+      ],
+      answer: 1,
+      explanation: "Si la fuerza neta es nula (Fₙₑₜₐ = 0), la aceleración es cero (a = 0)[cite: 3]. De acuerdo con la Primera Ley de Newton, el cuerpo mantiene su estado de movimiento rectilíneo uniforme (velocidad constante en magnitud y dirección)[cite: 3]."
+    },
+    {
+      topic: "Relación entre Masa y Peso",
+      question: "Se tienen dos objetos en un mismo laboratorio de física: el Objeto A de masa m y el Objeto B de masa 3m. Si ambos experimentan la misma aceleración gravitatoria g, ¿cuál es la relación correcta entre sus pesos?",
+      options: [
+        "El Objeto B pesa el triple que el Objeto A porque W = mg.",
+        "Ambos pesan exactamente lo mismo por estar sometidos a la misma gravedad.",
+        "El Objeto A pesa el triple porque a menor masa corresponde una mayor atracción gravitacional.",
+        "El peso del Objeto B es 9 veces mayor al depender del cuadrado de la masa."
+      ],
+      answer: 0,
+      explanation: "El peso es directamente proporcional a la masa cuando la gravedad es constante (W ∝ m)[cite: 3]. Dado que W = mg, si m₂ = 3m, entonces W₂ = 3(mg) = 3W₁[cite: 3]."
+    },
+    {
+      topic: "Propiedades de Masa y Peso",
+      question: "Un rover de exploración espacial de 900 kg de masa es enviado desde la Tierra hacia Marte, donde la aceleración de la gravedad es aproximadamente 3.7 m/s². Al posarse en la superficie marciana, ¿qué sucede con su masa y su peso?",
+      options: [
+        "Su masa disminuye proporcionalmente a la gravedad y su peso se mantiene invariable.",
+        "Tanto la masa como el peso disminuyen al cambiar de planeta.",
+        "Su masa permanece constante en 900 kg, mientras que su peso disminuye.",
+        "Su masa aumenta para compensar la menor atracción gravitatoria marciana."
+      ],
+      answer: 2,
+      explanation: "La masa es una propiedad escalar e intrínseca del cuerpo que permanece invariable en cualquier punto del universo[cite: 3]. El peso varía en función de la aceleración gravitatoria local (g), disminuyendo en Marte al tener una g menor que la Tierra[cite: 3]."
+    },
+    {
+      topic: "Condición de Equilibrio Translacional",
+      question: "Un contenedor de carga sobre una superficie horizontal plana recibe simultáneamente dos fuerzas: F₁ = 40 N dirigida hacia el Norte y F₂ = 40 N dirigida hacia el Sur. ¿Qué afirman las leyes de la física sobre el estado de este cuerpo?",
+      options: [
+        "Debe estar estrictamente en reposo de forma permanente.",
+        "Se encuentra acelerando hacia el Norte porque F₁ actúa en la dirección positiva del eje.",
+        "Puede estar en reposo o moviéndose a velocidad constante en línea recta.",
+        "Se frenará hasta detenerse independientemente de su velocidad inicial."
+      ],
+      answer: 2,
+      explanation: "Las fuerzas contrapuestas de igual magnitud se anulan, dando una fuerza neta de cero (Fₙₑₜₐ = 0)[cite: 3]. Esto cumple la condición de equilibrio translacional, lo que permite dos estados: equilibrio estático (reposo) o equilibrio dinámico (velocidad constante)[cite: 3]."
+    },
+    {
+      topic: "Superposición de Fuerzas",
+      question: "Si sobre una partícula actúan las fuerzas F₁ = (−7î + 3ĵ) N y F₂ = (9î + 2ĵ) N, ¿cuál es la magnitud exacta del vector fuerza resultante Fᵣ?",
+      options: [
+        "7 N",
+        "√29 N",
+        "√21 N",
+        "√145 N"
+      ],
+      answer: 1,
+      explanation: "Sumando componentes: ΣFₓ = −7 + 9 = 2 î; ΣFᵧ = 3 + 2 = 5 ĵ[cite: 3]. La fuerza resultante es Fᵣ = (2î + 5ĵ) N[cite: 3]. Su magnitud es |Fᵣ| = √(2² + 5²) = √(4 + 25) = √29 N (aproximadamente 5.38 N)."
+    },
+    {
+      topic: "Naturaleza de Masa y Peso",
+      question: "Selecciona la afirmación correcta referente a las diferencias conceptuales entre masa y peso:",
+      options: [
+        "La masa es una magnitud vectorial y el peso es una magnitud escalar.",
+        "La masa se mide en Newtons (N) y el peso se mide en kilogramos (kg) en el SI.",
+        "El peso puede ser cero en ausencia de gravedad, pero la masa nunca es nula para un objeto.",
+        "Ambas magnitudes varían directamente al cambiar la posición geográfica del objeto."
+      ],
+      answer: 2,
+      explanation: "En ausencia de campo gravitatorio (g = 0), el peso se vuelve nulo (W = 0)[cite: 3]. Sin embargo, la masa representa la cantidad de materia e inercia, por lo que nunca cambia ni se vuelve cero[cite: 3]."
+    },
+    {
+      topic: "Primera Ley de Newton: Mitos de la Dinámica",
+      question: "Un disco de hockey se desliza sobre una pista de hielo ideal donde la fricción es despreciable. Si no actúa ninguna fuerza neta sobre él en la dirección del movimiento, ¿qué fuerza es necesaria para mantenerlo con velocidad constante?",
+      options: [
+        "Una fuerza constante en la misma dirección del movimiento.",
+        "Ninguna fuerza, ya que no se requiere fuerza sostenida para mantener velocidad constante sin fricción.",
+        "Una fuerza que compense gradualmente la pérdida natural de masa del cuerpo.",
+        "Una fuerza igual al peso del disco multiplicada por su velocidad."
+      ],
+      answer: 1,
+      explanation: "Es un mito común pensar que se requiere una fuerza constante para mantener el movimiento[cite: 3]. Según la Primera Ley de Newton, en ausencia de fricción o fuerza neta en contra, el objeto conservará su velocidad sin necesidad de propulsión continua[cite: 3]."
+    },
+    {
+      topic: "Cálculo de Peso",
+      question: "Un instrumental científico tiene una masa de 15 kg. Si en la Luna la aceleración de la gravedad es aproximadamente 1.6 m/s², ¿cuál es el peso del instrumento en la superficie lunar?",
+      options: [
+        "15 N",
+        "24 N",
+        "147 N",
+        "9.37 N"
+      ],
+      answer: 1,
+      explanation: "Utilizando la fórmula del peso W = m · g[cite: 3]: W = (15 kg) · (1.6 m/s²) = 24 N[cite: 3]. Unidades en el Sistema Internacional: N = kg·m/s²[cite: 3]."
+    },
+    {
+      topic: "Superposición de Fuerzas: Método por Componentes",
+      question: "Al calcular la fuerza resultante de un sistema de fuerzas coplanares mediante componentes cartesianas (î, ĵ), ¿cuál de las siguientes reglas es fundamental seguir?",
+      options: [
+        "Las componentes î y ĵ pueden sumarse directamente entre sí sin considerar sus ejes.",
+        "Se deben sumar por separado las componentes en î y en ĵ respetando sus signos vectoriales.",
+        "Las componentes negativas deben convertirse a positivas antes de efectuar la suma.",
+        "La fuerza resultante siempre es igual a la suma escalar directa de los módulos de cada fuerza."
+      ],
+      answer: 1,
+      explanation: "Jamás deben sumarse componentes î con ĵ de forma directa porque corresponden a ejes ortogonales (perpendiculares)[cite: 3]. Se debe sumar ΣFₓ en î y ΣFᵧ en ĵ por separado, respetando estrictamente los signos algebraicos[cite: 3]."
+    }
+  ];
+
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const restartBtn = document.getElementById("restartBtn");
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "✓ ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "✕ Respuesta incorrecta";
+      feedbackText.innerHTML = `<strong>Explicación:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 10) {
+      msg = "¡Puntaje perfecto! Dominas con precisión la suma vectorial por componentes, la primera ley de Newton y la distinción entre masa y peso.";
+    } else if (score >= 7) {
+      msg = "¡Gran trabajo! Tienes bases sólidas en dinámica. Revisa los detalles de la suma de vectores î y ĵ o las condiciones de equilibrio.";
+    } else if (score >= 5) {
+      msg = "Buen intento. Te recomendamos repasar el concepto de inercia y la relación entre masa y peso en diferentes entornos.";
+    } else {
+      msg = "Es importante reforzar la superposición de fuerzas y la Primera Ley de Newton. ¡Vuelve a repasar la ficha de estudio e inténtalo de nuevo!";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  function restartQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", restartQuiz);
+
+  loadQuestion();
+</script>
+
+</body>
+</html>
