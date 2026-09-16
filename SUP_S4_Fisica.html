@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Física Fundamental - Nivel Preparatoria</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-main: #18181b;
+      --text-muted: #4b5563;
+
+      --neon-pink: #ff007f;
+      --pastel-pink: #fdf2f8;
+      --neon-purple: #9333ea;
+      --pastel-purple: #f3e8ff;
+      --neon-blue: #00b4d8;
+      --pastel-blue: #e0f2fe;
+      --neon-green: #10b981;
+      --pastel-green: #d1fae5;
+      --neon-red: #f43f5e;
+      --pastel-red: #ffe4e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-purple);
+      box-shadow: 0 20px 45px rgba(147, 51, 234, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(253, 242, 248, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-pink);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-purple);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      filter: contrast(1.1) drop-shadow(0 4px 8px rgba(147, 51, 234, 0.18));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.08) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: var(--pastel-purple);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid #d8b4fe;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 4px 12px rgba(0, 180, 216, 0.25);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: clamp(2px, 0.25vw, 3px) solid #e9d5ff;
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 18px rgba(255, 0, 127, 0.15);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-purple);
+      background-color: var(--pastel-purple);
+      color: var(--neon-purple);
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: var(--neon-purple);
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-purple);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #065f46 !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.35) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #9f1239 !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: #ecfdf5;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #065f46;
+    }
+
+    .feedback-panel.error {
+      background-color: #fff1f2;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #9f1239;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(255, 0, 127, 0.3);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.1);
+    }
+    .btn-check:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+      box-shadow: 0 6px 16px rgba(0, 180, 216, 0.3);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.1);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-purple);
+      font-weight: 900;
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 20px rgba(147, 51, 234, 0.35);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.1);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const rawQuestions = [
+    {
+      topic: "Tercera Ley de Newton (Análisis de Error)",
+      question: "Un estudiante afirma: 'La Tierra atrae a una persona con una fuerza mucho mayor que aquella con la que la persona atrae a la Tierra, porque la Tierra tiene mayor masa'. ¿Cuál evaluación de esta afirmación es correcta?",
+      options: [
+        "Es correcto porque la fuerza gravitatoria ejercida por cada cuerpo es directamente proporcional únicamente a su propia masa.",
+        "Es incorrecto porque la persona no ejerce fuerza gravitatoria alguna sobre la Tierra debido a la diferencia entre sus masas.",
+        "Es correcto porque el cuerpo de mayor masa produce siempre una fuerza mayor sobre el cuerpo que posee menor masa.",
+        "Es incorrecto porque ambos cuerpos ejercen fuerzas de igual magnitud y sentido opuesto, aunque sus aceleraciones sean muy diferentes."
+      ],
+      answer: 3,
+      explanation: "Según la 3.ª Ley de Newton, las fuerzas de atracción gravitatoria forman un par acción-reacción: son estrictamente de igual magnitud y sentidos opuestos[cite: 8]. Aunque la fuerza es idéntica, la aceleración inducida sobre la Tierra es imperceptible por su enorme masa[cite: 8]."
+    },
+    {
+      topic: "Energía Potencial Elástica",
+      question: "Un resorte ideal con una constante elástica k = 400 N/m se comprime una distancia de 0.10 m (10 cm) desde su posición de equilibrio. ¿Cuánta energía potencial elástica (U_e = 1/2 k Δx²) queda almacenada en el resorte?",
+      options: [
+        "20 J",
+        "2 J",
+        "40 J",
+        "4 J"
+      ],
+      answer: 1,
+      explanation: "Sustituyendo en la fórmula: U_e = 1/2 · k · (Δx)² = 1/2 × 400 N/m × (0.10 m)² = 200 × 0.01 = 2 Joules (J)[cite: 8]."
+    },
+    {
+      topic: "Equilibrio Rotacional",
+      question: "Una barra horizontal está en equilibrio alrededor de un punto de apoyo. Una fuerza de 30 N actúa perpendicularmente a 2 m a la izquierda del apoyo. ¿Qué fuerza perpendicular debe aplicarse a 3 m a la derecha para conservar el equilibrio rotacional?",
+      options: [
+        "15 N",
+        "18 N",
+        "20 N",
+        "45 N"
+      ],
+      answer: 2,
+      explanation: "Segunda condición de equilibrio: Στ = 0 ⇒ (30 N)(2 m) − (F₂)(3 m) = 0[cite: 8]. Despejando: 60 N·m = 3 m · F₂ ⇒ F₂ = 60 / 3 = 20 N[cite: 8]."
+    },
+    {
+      topic: "Movimiento Planetario (2.ª Ley de Kepler)",
+      question: "De acuerdo con la Segunda Ley de Kepler (Ley de las Áreas), ¿qué sucede con la velocidad orbital de un planeta conforme se desplaza a lo largo de su órbita elíptica alrededor del Sol?",
+      options: [
+        "Permanece constante durante todo el recorrido orbital.",
+        "Es máxima cuando el planeta se encuentra en el perihelio (punto más cercano al Sol) y mínima en el afelio (punto más lejano).",
+        "Es mínima cuando el planeta está en el perihelio debido a la fuerte atracción gravitatoria.",
+        "Depende exclusivamente de la velocidad de rotación del Sol sobre su propio eje."
+      ],
+      answer: 1,
+      explanation: "La 2.ª Ley de Kepler establece la conservación del momento angular: el radio vector barre áreas iguales en tiempos iguales[cite: 8]. Para lograr esto, el planeta se desplaza más rápido en el perihelio y más lento en el afelio[cite: 8]."
+    },
+    {
+      topic: "Ley de Hooke (Fuerza Restauradora)",
+      question: "Un resorte con constante elástica k = 250 N/m se estira 0.08 m dentro de su régimen elástico. ¿Cuál es la magnitud de la fuerza restauradora que ejerce el resorte?",
+      options: [
+        "3.125 N",
+        "20 N",
+        "31.25 N",
+        "200 N"
+      ],
+      answer: 1,
+      explanation: "Magnitud de la fuerza restauradora: |F| = k · Δx = 250 N/m × 0.08 m = 20 N[cite: 8]."
+    },
+    {
+      topic: "Proporcionalidades y 3.ª Ley de Kepler",
+      question: "Según la Tercera Ley de Kepler (T² ∝ a³), si el semieje mayor de la órbita de un planeta hipotético es 4 veces mayor que el de la Tierra (a = 4 UA), ¿cuántos años terrestres tardará en completar una órbita alrededor del Sol?",
+      options: [
+        "8 años",
+        "16 años",
+        "64 años",
+        "2 años"
+      ],
+      answer: 0,
+      explanation: "De T² = a³: a = 4 ⇒ T² = (4)³ = 64[cite: 8]. Extrayendo raíz cuadrada: T = √64 = 8 años terrestres[cite: 8]."
+    },
+    {
+      topic: "Ley de Gravitación Universal",
+      question: "Dos cuerpos se atraen gravitacionalmente con una fuerza F. Si la distancia entre sus centros se duplica mientras sus masas permanecen constantes, ¿cuál será la nueva fuerza de atracción?",
+      options: [
+        "4F",
+        "2F",
+        "F/2",
+        "F/4"
+      ],
+      answer: 3,
+      explanation: "En F = G(m₁m₂ / r²), al duplicar la distancia (2r), el denominador se vuelve (2r)² = 4r², reduciendo la fuerza a la cuarta parte (F/4)[cite: 8]."
+    },
+    {
+      topic: "Caso Práctico de Torca",
+      question: "Una llave inglesa de 0.30 m de largo se utiliza para aflojar una tuerca. Se aplica una fuerza perpendicular de 80 N al extremo de la llave haciendo girar la herramienta en sentido antihorario. De acuerdo con la convención estándar, ¿cuál es el valor y signo de la torca aplicada?",
+      options: [
+        "−24 N·m (negativa por ser sentido antihorario).",
+        "+24 N·m (positiva por ser sentido antihorario).",
+        "+266.6 N·m (positiva).",
+        "0 N·m (por estar en equilibrio)."
+      ],
+      answer: 1,
+      explanation: "Magnitud: τ = F · r = 80 N × 0.30 m = 24 N·m[cite: 8]. Las rotaciones en sentido antihorario producen convencionalmente una torca POSITIVA (+24 N·m)[cite: 8]."
+    },
+    {
+      topic: "Cálculo Directo de Torca",
+      question: "Una fuerza de 40 N actúa perpendicularmente a una barra a 0.50 m del eje de rotación. ¿Cuál es la magnitud de la torca resultante?",
+      options: [
+        "20 N·m",
+        "40 N·m",
+        "60 N·m",
+        "80 N·m"
+      ],
+      answer: 0,
+      explanation: "Fórmula de torca perpendicular: τ = F · d = 40 N × 0.50 m = 20 N·m[cite: 8]."
+    },
+    {
+      topic: "Campos Gravitatorios Superficiales",
+      question: "La fórmula para calcular la aceleración gravitatoria en la superficie de un planeta es g = GM / R². Si un planeta hipotético tiene el doble de la masa de la Tierra (2M) y el mismo radio (R), ¿cuál será el valor de la aceleración de la gravedad en su superficie?",
+      options: [
+        "La mitad de la aceleración terrestre (4.9 m/s²).",
+        "Igual a la aceleración terrestre (9.8 m/s²).",
+        "El doble de la aceleración terrestre (19.6 m/s²).",
+        "Cuatro veces la aceleración terrestre (39.2 m/s²)."
+      ],
+      answer: 2,
+      explanation: "En g = GM / R², la gravedad es directamente proporcional a la masa M[cite: 8]. Si la masa se duplica (2M) manteniendo R fijo, la aceleración se duplica: 2 × 9.8 = 19.6 m/s²[cite: 8]."
+    },
+    {
+      topic: "Análisis de Error: Límite Elástico",
+      question: "Un estudiante estira un resorte con una fuerza extrema de 1,000 N y nota que al soltarlo el resorte quedó deformado permanentemente y ya no responde a la fórmula F = −kΔx. Afirma que 'la Ley de Hooke es falsa'. ¿Por qué es ERRÓNEA su afirmación?",
+      options: [
+        "Porque la Ley de Hooke solo es válida dentro del límite elástico del material; excederlo causa una deformación plástica permanente.",
+        "Porque debió medir el estiramiento en milímetros y no en metros.",
+        "Porque la constante k aumenta automáticamente para compensar cualquier fuerza aplicada.",
+        "Porque los resortes nunca ejercen fuerzas restauradoras ante fuerzas de tracción."
+      ],
+      answer: 0,
+      explanation: "La Ley de Hooke es válida únicamente dentro del régimen elástico del material[cite: 8]. Aplicar una fuerza excesiva sobrepasa el límite elástico, sufriendo una deformación plástica permanente[cite: 8]."
+    },
+    {
+      topic: "Equilibrio Rotacional en Subibaja",
+      question: "Un subibaja rígido de 4 m de longitud apoyado exactamente en su centro sostiene a dos niños: Ana (40 kg) sentada a 1.5 m del pivote en el extremo izquierdo y Luis (x kg) sentado a 2.0 m del pivote en el extremo derecho. ¿Qué masa debe tener Luis para que la barra se mantenga en equilibrio horizontal?",
+      options: [
+        "30 kg",
+        "40 kg",
+        "50 kg",
+        "60 kg"
+      ],
+      answer: 0,
+      explanation: "Suma de torcas respecto al pivote: (m_Ana · g)(d_Ana) = (m_Luis · g)(d_Luis) ⇒ (40 kg)(1.5 m) = (x kg)(2.0 m) ⇒ 60 = 2.0x ⇒ x = 30 kg[cite: 8]."
+    },
+    {
+      topic: "Cálculo de Constante Elástica",
+      question: "Al colgar un cuerpo de 50 N de peso verticalmente de un resorte, este se estira un total de 0.05 m (5 cm). ¿Cuál es el valor de la constante elástica k de este resorte?",
+      options: [
+        "2.5 N/m",
+        "250 N/m",
+        "1,000 N/m",
+        "500 N/m"
+      ],
+      answer: 2,
+      explanation: "Despejando k en la Ley de Hooke: k = F / Δx = 50 N / 0.05 m = 1,000 N/m[cite: 8]."
+    },
+    {
+      topic: "Tercera Ley de Newton en el Vacío",
+      question: "Durante el despegue de un cohete espacial en el vacío del espacio exterior, los gases de combustión son expulsados a altísima velocidad hacia abajo. ¿Cómo acelera el cohete hacia adelante si no hay aire contra el cual 'empujar'?",
+      options: [
+        "El cohete acelera gracias a la reacción que los gases expulsados ejercen directamente sobre el propio cohete hacia arriba.",
+        "Acelera porque los gases empujan contra las capas superiores de la atmósfera terrestre.",
+        "En el vacío del espacio es imposible que un cohete acelere según las leyes de Newton.",
+        "El cohete acelera porque pierde masa y la gravedad deja de atraerlo."
+      ],
+      answer: 0,
+      explanation: "Los motores de cohete funcionan mediante la 3.ª Ley de Newton: la expulsión de masa de gas hacia atrás (acción) genera una fuerza de reacción idéntica sobre la estructura del cohete empujándolo hacia adelante[cite: 8]."
+    },
+    {
+      topic: "Equilibrio Traslacional con Cables",
+      question: "Una lámpara de 100 N de peso cuelga inmóvil del techo sostenida por dos cables verticales paralelos que se reparten la carga equitativamente. ¿Cuál es la tensión en cada uno de los cables para garantizar el equilibrio traslacional (ΣF_y = 0)?",
+      options: [
+        "100 N en cada cable.",
+        "200 N en cada cable.",
+        "50 N en cada cable.",
+        "0 N en ambos cables."
+      ],
+      answer: 2,
+      explanation: "Equilibrio vertical: ΣF_y = T₁ + T₂ − P = 0 ⇒ 2T = 100 N ⇒ T = 50 N en cada cable[cite: 8]."
+    },
+    {
+      topic: "Proporcionalidad en Gravitación Universal",
+      question: "Si la masa de un planeta A se cuadruplica (4m₁) y la masa del planeta B se duplica (2m₂), manteniendo la misma distancia r entre sus centros, ¿cuántas veces aumentará la fuerza de atracción gravitatoria entre ellos?",
+      options: [
+        "Aumentará 6 veces (6F).",
+        "Aumentará 8 veces (8F).",
+        "Aumentará 16 veces (16F).",
+        "Se mantendrá igual (F)."
+      ],
+      answer: 1,
+      explanation: "En F = G(m₁m₂ / r²), la fuerza es directamente proporcional al producto de ambas masas[cite: 8]. Si una se multiplica por 4 y la otra por 2, la fuerza aumenta 4 × 2 = 8 veces (8F)[cite: 8]."
+    },
+    {
+      topic: "Optimización de Torca",
+      question: "Se aplica una fuerza de 50 N a una puerta rígida a una distancia de 0.80 m de las bisagras. ¿En qué dirección o ángulo respecto a la superficie de la puerta se debe aplicar la fuerza para obtener la MÁXIMA torca posible?",
+      options: [
+        "Paralela a la puerta (θ = 0°).",
+        "Perpendicular a la puerta (θ = 90°).",
+        "Formando un ángulo de 45° respecto a la puerta.",
+        "Apuntando directamente hacia el eje de las bisagras (θ = 180°)."
+      ],
+      answer: 1,
+      explanation: "En la fórmula τ = F · r · sen(θ), el valor del seno alcanza su máximo absoluto (1) cuando el ángulo es de 90° (fuerza completamente perpendicular al brazo de palanca)[cite: 8]."
+    },
+    {
+      topic: "Cálculo Directo de Atracción Gravitatoria",
+      question: "Dos esferas de plomo de 100 kg cada una se colocan con sus centros separados a una distancia de 2 m. Considerando G = 6.67 × 10⁻¹¹ N·m²/kg², ¿cuál es la magnitud exacta de la fuerza de atracción gravitatoria entre ellas?",
+      options: [
+        "1.6675 × 10⁻⁷ N",
+        "3.335 × 10⁻⁷ N",
+        "6.67 × 10⁻⁹ N",
+        "1.6675 × 10⁻⁸ N"
+      ],
+      answer: 0,
+      explanation: "F = G(m₁m₂ / r²) = (6.67 × 10⁻¹¹) × (100 × 100) / (2)² = (6.67 × 10⁻¹¹) × 10,000 / 4 = (6.67 × 10⁻⁷) / 4 = 1.6675 × 10⁻⁷ N[cite: 8]."
+    },
+    {
+      topic: "Primera Ley de Kepler (Órbitas Elípticas)",
+      question: "¿Cuál es la forma geométrica exacta de la órbita que describe un planeta al girar alrededor del Sol y qué posición ocupa la estrella dentro de dicha figura, según la Primera Ley de Kepler?",
+      options: [
+        "Una trayectoria circular perfecta con el Sol ubicado exactamente en el centro geométrico.",
+        "Una trayectoria elíptica con el Sol ubicado en uno de los dos focos de la elipse.",
+        "Una trayectoria parabólica con el Sol en el vértice.",
+        "Una trayectoria hiperbólica abierta con el Sol en el exterior."
+      ],
+      answer: 1,
+      explanation: "La 1.ª Ley de Kepler establece que las órbitas planetarias son elipses y el Sol no ocupa el centro geométrico sino uno de los dos puntos focales de la elipse[cite: 8]."
+    },
+    {
+      topic: "Análisis de Error: 3.ª Ley de Newton y Movimiento",
+      question: "Mateo sostiene: 'Al golpear un balón de fútbol, mi pie ejerce una fuerza de 150 N sobre el balón hacia adelante y el balón ejerce 150 N sobre mi pie hacia atrás. Ambas fuerzas se anulan entre sí produciendo una fuerza neta de cero, por lo que el balón no debería moverse'. ¿Cuál es el error conceptual en la afirmación de Mateo?",
+      options: [
+        "Que las fuerzas de acción y reacción actúan sobre cuerpos distintos (una sobre el balón y otra sobre el pie), por lo que nunca pueden anularse entre sí sobre el mismo cuerpo.",
+        "Que la fuerza del pie es siempre mucho mayor a la fuerza de reacción del balón.",
+        "Que el balón no ejerce ninguna fuerza sobre el pie debido a que su masa es pequeña.",
+        "Que la fuerza de reacción solo se genera cuando el balón está ponchado."
+      ],
+      answer: 0,
+      explanation: "El par de fuerzas de la 3.ª Ley de Newton actúa sobre dos objetos completamente distintos: la fuerza de empuje actúa SOBRE el balón y la reacción actúa SOBRE el pie[cite: 8]. Las fuerzas solo se anulan si se aplican sobre el mismo cuerpo[cite: 8]."
+    }
+  ];
+
+  let questions = [];
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const resultTitle = document.getElementById("resultTitle");
+  const restartBtn = document.getElementById("restartBtn");
+
+  // Algoritmo Fisher-Yates para desordenar el arreglo
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function initQuiz() {
+    questions = shuffleArray(rawQuestions);
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🎉 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 ¡Casi! Revisa la explicación:";
+      feedbackText.innerHTML = `<strong>Explicación física:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🏆 ¡Dominio Perfecto en Física!";
+      msg = "¡Fantástico! Has resuelto correctamente los 20 reactivos. Dominas las leyes de Kepler, torca, gravitación universal y constante elástica.";
+    } else if (score >= 15) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Demuestras un excelente nivel. Revisa los detalles conceptuales de torca y 3.ª ley para asegurar el 100%.";
+    } else if (score >= 10) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Cuentas con buenas bases. Te sugerimos repasar los problemas de equilibrio rotacional y ley de Hooke.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Practicando!";
+      msg = "¡Sigue adelante! Repasa los conceptos de energía potencial elástica, gravitación y vuelve a intentarlo (las preguntas cambiarán de orden automáticamente).";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", (e) => {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    const key = e.key.toUpperCase();
+    if (["A", "1"].includes(key)) selectOption(0);
+    else if (["B", "2"].includes(key)) selectOption(1);
+    else if (["C", "3"].includes(key)) selectOption(2);
+    else if (["D", "4"].includes(key)) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  initQuiz();
+</script>
+
+</body>
+</html>

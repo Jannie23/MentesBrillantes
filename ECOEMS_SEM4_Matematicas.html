@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Banco de Preguntas: Matemáticas Integral - ECOEMS & Nivel Superior</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-main: #18181b;
+      --text-muted: #4b5563;
+
+      --neon-pink: #ff007f;
+      --pastel-pink: #fdf2f8;
+      --neon-purple: #9333ea;
+      --pastel-purple: #f3e8ff;
+      --neon-blue: #00b4d8;
+      --pastel-blue: #e0f2fe;
+      --neon-green: #10b981;
+      --pastel-green: #d1fae5;
+      --neon-red: #f43f5e;
+      --pastel-red: #ffe4e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-purple);
+      box-shadow: 0 20px 45px rgba(147, 51, 234, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    /* Cabecera Fija (Sticky) */
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(253, 242, 248, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-pink);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-purple);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      filter: contrast(1.1) drop-shadow(0 4px 8px rgba(147, 51, 234, 0.18));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.08) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: var(--pastel-purple);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid #d8b4fe;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Cuerpo scrollable responsivo */
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 4px 12px rgba(0, 180, 216, 0.25);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: clamp(2px, 0.25vw, 3px) solid #e9d5ff;
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 18px rgba(255, 0, 127, 0.15);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-purple);
+      background-color: var(--pastel-purple);
+      color: var(--neon-purple);
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: var(--neon-purple);
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-purple);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #065f46 !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.35) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #9f1239 !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: #ecfdf5;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #065f46;
+    }
+
+    .feedback-panel.error {
+      background-color: #fff1f2;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #9f1239;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(255, 0, 127, 0.3);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.1);
+    }
+    .btn-check:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+      box-shadow: 0 6px 16px rgba(0, 180, 216, 0.3);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.1);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-purple);
+      font-weight: 900;
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 20px rgba(147, 51, 234, 0.35);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.1);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      topic: "Problema de Aplicación con Fracciones",
+      question: "Un depósito de agua se encuentra lleno hasta 3/5 de su capacidad total. Si se agregan 84 litros, el nivel alcanza 4/5 de su capacidad. ¿Cuál es la capacidad total del depósito?",
+      options: [
+        "336 L",
+        "420 L",
+        "504 L",
+        "525 L"
+      ],
+      answer: 1,
+      explanation: "La diferencia entre el nivel final e inicial es 4/5 − 3/5 = 1/5 de la capacidad total[cite: 6]. Si 1/5 equivale a 84 litros, la capacidad total se obtiene multiplicando 84 × 5 = 420 litros[cite: 6]."
+    },
+    {
+      topic: "Cálculo Directo con Fracciones",
+      question: "¿Cuál es el resultado simplificado de realizar la operación (2/3 + 1/4) ÷ 11/6?",
+      options: [
+        "1/2",
+        "3/4",
+        "11/12",
+        "1"
+      ],
+      answer: 0,
+      explanation: "Suma entre paréntesis: 2/3 + 1/4 = 8/12 + 3/12 = 11/12[cite: 6]. División: (11/12) ÷ (11/6) = (11/12) × (6/11) = 6/12 = 1/2[cite: 6]."
+    },
+    {
+      topic: "Decimales y Tasa de Producción",
+      question: "Una máquina industrial produce 2.4 kg de material cada 0.75 horas. Si mantiene una tasa de producción constante durante 4.5 horas, ¿cuántos kilogramos produce en total?",
+      options: [
+        "12.8 kg",
+        "13.6 kg",
+        "14.4 kg",
+        "15.2 kg"
+      ],
+      answer: 2,
+      explanation: "Calculamos la tasa por hora: 2.4 / 0.75 = 3.2 kg/h[cite: 6]. En 4.5 horas la producción total es: 3.2 × 4.5 = 14.4 kg[cite: 6]."
+    },
+    {
+      topic: "Traducción a Lenguaje Algebraico",
+      question: "¿Cuál de las siguientes opciones expresa correctamente en lenguaje algebraico el enunciado: 'El cuádruple de un número disminuido en la tercera parte de otro número diferente'?",
+      options: [
+        "4x − 3y",
+        "x⁴ − y/3",
+        "4x − y/3",
+        "(4x − y)/3"
+      ],
+      answer: 2,
+      explanation: "'El cuádruple de un número' es 4x[cite: 6]. 'La tercera parte de otro número' es y/3[cite: 6]. 'Disminuido' indica resta[cite: 6]. La expresión completa es 4x − y/3[cite: 6]."
+    },
+    {
+      topic: "Enigma del Resto",
+      question: "Una persona destina 2/7 de su ingreso mensual al pago de vivienda. De la cantidad restante, utiliza 3/10 para transporte. Si después de ambos gastos le quedan $7,000, ¿cuál era su ingreso total?",
+      options: [
+        "$14,000",
+        "$13,500",
+        "$15,000",
+        "$12,500"
+      ],
+      answer: 0,
+      explanation: "Gasta 2/7 en vivienda, le quedan 5/7[cite: 6]. De este resto gasta 3/10 en transporte, conservando 7/10 de 5/7: (7/10) × (5/7) = 35/70 = 1/2 del ingreso inicial[cite: 6]. Si 1/2 del ingreso es $7,000, el ingreso total era $7,000 × 2 = $14,000[cite: 6]."
+    },
+    {
+      topic: "Proporcionalidades y Porcentaje",
+      question: "Si el precio original de una chamarra se reduce en un 15% y el nuevo precio es de $680, ¿cuál expresión algebraica permite calcular el precio original p?",
+      options: [
+        "p − 15 = 680",
+        "0.15p = 680",
+        "0.85p = 680",
+        "p + 0.15p = 680"
+      ],
+      answer: 2,
+      explanation: "Si se descuenta el 15%, se paga el 85% del precio original (100% − 15% = 85% = 0.85)[cite: 6]. Por lo tanto, el 85% de p es igual a 680, lo que se expresa como 0.85p = 680[cite: 6]."
+    },
+    {
+      topic: "Modelación Algebraica de Costo",
+      question: "Un servicio de transporte cobra una cuota fija de $85 más $12.50 por cada kilómetro recorrido. Si x representa la cantidad de kilómetros recorridos y C el costo total, ¿qué expresión representa correctamente esta relación?",
+      options: [
+        "C = 85x + 12.50",
+        "C = 12.50(x + 85)",
+        "C = 85(x + 12.50)",
+        "C = 85 + 12.50x"
+      ],
+      answer: 3,
+      explanation: "La cuota fija es un término constante ($85) y el costo variable por kilómetro es $12.50 por x kilómetros (12.50x)[cite: 6]. El costo total es C = 85 + 12.50x[cite: 6]."
+    },
+    {
+      topic: "Sustitución Numérica",
+      question: "Dada la expresión algebraica 3a² − 2(b + 5), ¿cuál es su valor numérico cuando a = 4 y b = 3?",
+      options: [
+        "32",
+        "40",
+        "138",
+        "28"
+      ],
+      answer: 0,
+      explanation: "Sustituimos a = 4 y b = 3: 3(4)² − 2(3 + 5) = 3(16) − 2(8) = 48 − 16 = 32[cite: 6]."
+    },
+    {
+      topic: "Ecuación de Primer Grado",
+      question: "Un recipiente contiene x litros de agua. Primero se utiliza 1/4 del contenido y después se agregan 18 litros. Si finalmente el recipiente contiene 54 litros, ¿cuántos litros contenía originalmente?",
+      options: [
+        "42 L",
+        "48 L",
+        "54 L",
+        "72 L"
+      ],
+      answer: 1,
+      explanation: "Si se usa 1/4 del contenido x, quedan 3/4 x[cite: 6]. Planteamos la ecuación: 3/4 x + 18 = 54 ⇒ 3/4 x = 36 ⇒ x = (36 × 4) / 3 = 144 / 3 = 48 litros[cite: 6]."
+    },
+    {
+      topic: "Conversión Fracción-Decimal",
+      question: "¿Cuál es la fracción irreducible equivalente al número decimal 0.375?",
+      options: [
+        "3/8",
+        "37/100",
+        "7/20",
+        "3/5"
+      ],
+      answer: 0,
+      explanation: "Convertimos a fracción: 0.375 = 375/1000[cite: 6]. Dividiendo numerador y denominador entre 125 obtenemos la fracción irreducible 3/8[cite: 6]."
+    },
+    {
+      topic: "Análisis de Error: Multiplicación vs. Yuxtaposición",
+      question: "Sofía resolvió el problema: 'Evalúa 5x para x = 3' y escribió como resultado 53. ¿Por qué es incorrecto el resultado de Sofía?",
+      options: [
+        "Porque debió sumar los números: 5 + 3 = 8.",
+        "Porque en 5x el coeficiente 5 multiplica a la literal x: 5(3) = 15.",
+        "Porque debió elevar 5 a la tercera potencia: 5³ = 125.",
+        "Porque las literales solo representan números decimales."
+      ],
+      answer: 1,
+      explanation: "En álgebra, colocar una constante junto a una variable (5x) representa multiplicación y no la yuxtaposición de dígitos[cite: 6]. Por ello, 5x = 5 × 3 = 15[cite: 6]."
+    },
+    {
+      topic: "Geometría y Perímetro Algebraico",
+      question: "Un terreno rectangular tiene un largo que mide 3 m más que el doble de su ancho (x). ¿Qué expresión algebraica representa el perímetro total de este terreno?",
+      options: [
+        "3x + 3",
+        "6x + 6",
+        "2x² + 3x",
+        "4x + 6"
+      ],
+      answer: 1,
+      explanation: "Dimensiones: Ancho = x, Largo = 2x + 3[cite: 6]. El perímetro es la suma de los 4 lados: P = 2(ancho) + 2(largo) = 2(x) + 2(2x + 3) = 2x + 4x + 6 = 6x + 6[cite: 6]."
+    },
+    {
+      topic: "Cálculo con Números Decimales",
+      question: "Un carpintero corta tres tramos de madera de un listón de 5 metros: el primero mide 1.45 m, el segundo 2.1 m y el tercero 0.85 m. ¿Cuántos metros de listón le quedan?",
+      options: [
+        "0.60 m",
+        "0.50 m",
+        "0.75 m",
+        "1.20 m"
+      ],
+      answer: 0,
+      explanation: "Sumamos los tramos cortados: 1.45 + 2.10 + 0.85 = 4.40 m[cite: 6]. Restamos del total: 5.00 − 4.40 = 0.60 m[cite: 6]."
+    },
+    {
+      topic: "Caso Práctico de Proporciones",
+      question: "Para preparar una mezcla de pintura se requieren 3/4 de litro de pintura azul por cada 1/2 litro de pintura blanca. Si se tienen 3 litros de pintura blanca, ¿cuántos litros de pintura azul se necesitan para mantener la misma proporción?",
+      options: [
+        "2 1/4 L",
+        "4 1/2 L",
+        "3 1/2 L",
+        "1 1/2 L"
+      ],
+      answer: 1,
+      explanation: "Al pasar de 1/2 L a 3 L de pintura blanca, la cantidad se multiplicó por 6 (puesto que 3 ÷ 1/2 = 6)[cite: 6]. Multiplicamos la pintura azul por 6: (3/4) × 6 = 18/4 = 9/2 = 4 1/2 litros (o 4.5 L)[cite: 6]."
+    },
+    {
+      topic: "Anatomía Algebraica",
+      question: "En la expresión algebraica 7x² − 4x + 9, ¿cuáles son respectivamente el coeficiente del término de primer grado y el término independiente?",
+      options: [
+        "Coeficiente = 7; Término independiente = −4",
+        "Coeficiente = 4; Término independiente = 9",
+        "Coeficiente = −4; Término independiente = 9",
+        "Coeficiente = 7; Término independiente = 9"
+      ],
+      answer: 2,
+      explanation: "El término de primer grado es −4x, cuyo coeficiente incluye el signo negativo (−4)[cite: 6]. El término independiente o constante es +9[cite: 6]."
+    },
+    {
+      topic: "Reparto y División de Fracciones",
+      question: "Se desea repartir 5/2 kilogramos de café en bolsas de 1/8 de kilogramo cada una. ¿Cuántas bolsas completas se pueden llenar?",
+      options: [
+        "10 bolsas",
+        "16 bolsas",
+        "20 bolsas",
+        "25 bolsas"
+      ],
+      answer: 2,
+      explanation: "Dividimos la cantidad total entre la capacidad de cada bolsa: (5/2) ÷ (1/8) = (5/2) × 8 = 40/2 = 20 bolsas completas[cite: 6]."
+    },
+    {
+      topic: "Fracción de una Cantidad",
+      question: "En un grupo escolar de 40 alumnos, 3/5 son mujeres y 1/4 de las mujeres practican básquetbol. ¿Cuántas alumnas del grupo practican básquetbol?",
+      options: [
+        "6 alumnas",
+        "8 alumnas",
+        "10 alumnas",
+        "12 alumnas"
+      ],
+      answer: 0,
+      explanation: "Total de mujeres: (3/5) × 40 = 24 alumnas[cite: 6]. Mujeres que juegan básquetbol: (1/4) × 24 = 6 alumnas[cite: 6]."
+    },
+    {
+      topic: "Análisis de Error: Jerarquía de Operaciones",
+      question: "Luis afirma que el resultado de evaluar 2 + 3x cuando x = 4 es 20 porque calculó (2 + 3) × 4. ¿Por qué es ERRÓNEO el procedimiento de Luis?",
+      options: [
+        "Porque debió multiplicar primero 3 × 4 = 12 y luego sumar 2, obteniendo 14.",
+        "Porque debió elevar 4 al cuadrado antes de sumar.",
+        "Porque las sumas siempre se realizan antes que las multiplicaciones.",
+        "Porque la respuesta correcta debe dar un número negativo."
+      ],
+      answer: 0,
+      explanation: "Según la jerarquía de operaciones, la multiplicación (3 × x) tiene prioridad sobre la suma[cite: 6]. El procedimiento correcto es 2 + 3(4) = 2 + 12 = 14[cite: 6]."
+    },
+    {
+      topic: "Traducción Algebraica: Números Consecutivos",
+      question: "¿Cuál es la representación en lenguaje algebraico del enunciado: 'La suma de tres números enteros consecutivos' sabiendo que el número menor es n?",
+      options: [
+        "3n",
+        "n + 1 + 2",
+        "3n + 3",
+        "n³ + 3"
+      ],
+      answer: 2,
+      explanation: "Los tres números enteros consecutivos son n, n + 1 y n + 2[cite: 6]. Su suma es n + (n + 1) + (n + 2) = 3n + 3[cite: 6]."
+    },
+    {
+      topic: "Operaciones Mixtas: Fracción y Decimal",
+      question: "¿A qué número decimal equivale la suma de 3/5 + 0.45?",
+      options: [
+        "1.05",
+        "0.95",
+        "1.15",
+        "0.85"
+      ],
+      answer: 0,
+      explanation: "Convertimos la fracción 3/5 a número decimal dividiendo 3 ÷ 5 = 0.60[cite: 6]. Realizamos la suma: 0.60 + 0.45 = 1.05[cite: 6]."
+    }
+  ];
+
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const resultTitle = document.getElementById("resultTitle");
+  const restartBtn = document.getElementById("restartBtn");
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🎉 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 ¡Casi! Revisa el procedimiento:";
+      feedbackText.innerHTML = `<strong>Explicación matemática:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🏆 ¡Dominio Perfecto en Matemáticas!";
+      msg = "¡Magnífico trabajo! Resolviste correctamente los 20 reactivos. Dominas las operaciones con fracciones, decimales, modelación y lenguaje algebraico.";
+    } else if (score >= 15) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Demuestras bases algebraicas y aritméticas muy firmes. Revisa los pequeños errores de procedimiento para consolidar tu aprendizaje.";
+    } else if (score >= 10) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te recomendamos repasar los problemas del resto con fracciones y la jerarquía de operaciones.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Practicando!";
+      msg = "No te desanimes. Refuerza las conversiones de decimal a fracción, el lenguaje algebraico y vuelve a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  function restartQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", restartQuiz);
+
+  document.addEventListener("keydown", (e) => {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") restartQuiz();
+      return;
+    }
+
+    const key = e.key.toUpperCase();
+    if (["A", "1"].includes(key)) selectOption(0);
+    else if (["B", "2"].includes(key)) selectOption(1);
+    else if (["C", "3"].includes(key)) selectOption(2);
+    else if (["D", "4"].includes(key)) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  loadQuestion();
+</script>
+
+</body>
+</html>

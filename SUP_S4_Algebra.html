@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Álgebra Fundamental - Nivel Preparatoria</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-main: #18181b;
+      --text-muted: #4b5563;
+
+      --neon-pink: #ff007f;
+      --pastel-pink: #fdf2f8;
+      --neon-purple: #9333ea;
+      --pastel-purple: #f3e8ff;
+      --neon-blue: #00b4d8;
+      --pastel-blue: #e0f2fe;
+      --neon-green: #10b981;
+      --pastel-green: #d1fae5;
+      --neon-red: #f43f5e;
+      --pastel-red: #ffe4e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-purple);
+      box-shadow: 0 20px 45px rgba(147, 51, 234, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(253, 242, 248, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-pink);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-purple);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      filter: contrast(1.1) drop-shadow(0 4px 8px rgba(147, 51, 234, 0.18));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.08) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: var(--pastel-purple);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid #d8b4fe;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 4px 12px rgba(0, 180, 216, 0.25);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: clamp(2px, 0.25vw, 3px) solid #e9d5ff;
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 18px rgba(255, 0, 127, 0.15);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-purple);
+      background-color: var(--pastel-purple);
+      color: var(--neon-purple);
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: var(--neon-purple);
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-purple);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #065f46 !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.35) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #9f1239 !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: #ecfdf5;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #065f46;
+    }
+
+    .feedback-panel.error {
+      background-color: #fff1f2;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #9f1239;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(255, 0, 127, 0.3);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.1);
+    }
+    .btn-check:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+      box-shadow: 0 6px 16px rgba(0, 180, 216, 0.3);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.1);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-purple);
+      font-weight: 900;
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 20px rgba(147, 51, 234, 0.35);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.1);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const rawQuestions = [
+    {
+      topic: "Simplificación Algebraica",
+      question: "Si x ≠ 2 y x ≠ 3, simplifica la siguiente expresión algebraica: [(x² − 4) / (x² − 5x + 6)] · [(x − 3) / (x + 2)]",
+      options: [
+        "(x − 2) / (x + 2)",
+        "1",
+        "(x + 2) / (x − 2)",
+        "x − 3"
+      ],
+      answer: 1,
+      explanation: "Factorizamos: x² − 4 = (x − 2)(x + 2) y x² − 5x + 6 = (x − 2)(x − 3)[cite: 7]. Sustituyendo: [((x − 2)(x + 2)) / ((x − 2)(x − 3))] · [(x − 3) / (x + 2)][cite: 7]. Cancelamos todos los factores idénticos, resultando exactamente en 1[cite: 7]."
+    },
+    {
+      topic: "Restricciones de Dominio",
+      question: "¿Cuál es el conjunto de restricciones del dominio para la fracción algebraica (x − 5) / (x² − 9)?",
+      options: [
+        "x ≠ 5",
+        "x ≠ 9 y x ≠ −9",
+        "x ≠ 3 y x ≠ −3",
+        "x ≠ 0"
+      ],
+      answer: 2,
+      explanation: "El denominador no puede ser cero: x² − 9 ≠ 0 ⇒ (x − 3)(x + 3) ≠ 0[cite: 7]. Por tanto, los valores prohibidos que indeterminan la expresión son x ≠ 3 y x ≠ −3[cite: 7]."
+    },
+    {
+      topic: "Suma de Fracciones Algebraicas",
+      question: "Simplifica la suma de fracciones algebraicas: 2/x + 3/(x + 1) con x ≠ 0 y x ≠ −1.",
+      options: [
+        "5 / (2x + 1)",
+        "(5x + 3) / [x(x + 1)]",
+        "(5x + 2) / [x(x + 1)]",
+        "(2x + 5) / [x(x + 1)]"
+      ],
+      answer: 2,
+      explanation: "Mínimo común denominador: x(x + 1)[cite: 7]. Combinando numeradores: [2(x + 1) + 3x] / [x(x + 1)] = [2x + 2 + 3x] / [x(x + 1)] = (5x + 2) / [x(x + 1)][cite: 7]."
+    },
+    {
+      topic: "Análisis del Discriminante",
+      question: "¿Cuál es el valor del discriminante (Δ = b² − 4ac) y la naturaleza de las soluciones de la ecuación cuadrática x² − 6x + 9 = 0?",
+      options: [
+        "Δ = 72; tiene dos soluciones reales distintas.",
+        "Δ = 0; tiene una solución real doble (x = 3).",
+        "Δ = −36; tiene dos soluciones complejas conjugadas.",
+        "Δ = 12; no tiene soluciones en el campo numérico."
+      ],
+      answer: 1,
+      explanation: "Con a = 1, b = −6 y c = 9: Δ = (−6)² − 4(1)(9) = 36 − 36 = 0[cite: 7]. Cuando Δ = 0, la ecuación posee una única solución real doble (x = −b / 2a = 6 / 2 = 3)[cite: 7]."
+    },
+    {
+      topic: "Ecuación Cuadrática",
+      question: "Resuelve la ecuación cuadrática: 2x² − 7x + 3 = 0.",
+      options: [
+        "x = −3 y x = −1/2",
+        "x = 1 y x = 3/2",
+        "x = 3 y x = −1/2",
+        "x = 3 y x = 1/2"
+      ],
+      answer: 3,
+      explanation: "Fórmula general con a = 2, b = −7, c = 3: x = [7 ± √(49 − 24)] / 4 = [7 ± 5] / 4[cite: 7]. x₁ = (7 + 5) / 4 = 3; x₂ = (7 − 5) / 4 = 2/4 = 1/2[cite: 7]."
+    },
+    {
+      topic: "Propiedades de la Igualdad",
+      question: "Si se sabe que 2m + 3 = k y que k = 5n − 1, ¿qué propiedad formal de la igualdad permite concluir de manera directa que 2m + 3 = 5n − 1?",
+      options: [
+        "Propiedad Reflexiva.",
+        "Propiedad Simétrica.",
+        "Propiedad Transitiva.",
+        "Propiedad Distributiva."
+      ],
+      answer: 2,
+      explanation: "La Propiedad Transitiva establece formalmente que si A = B y B = C, entonces A = C[cite: 7]."
+    },
+    {
+      topic: "Ecuaciones Fraccionarias",
+      question: "Resuelve la ecuación fraccionaria: 2x / (x − 1) = 3, considerando la restricción x ≠ 1.",
+      options: [
+        "x = −3",
+        "x = 3",
+        "x = 1",
+        "x = 3/2"
+      ],
+      answer: 1,
+      explanation: "Multiplicamos por (x − 1): 2x = 3(x − 1) ⇒ 2x = 3x − 3[cite: 7]. Despejando: 3 = 3x − 2x ⇒ x = 3[cite: 7]. Como 3 ≠ 1, la solución es válida."
+    },
+    {
+      topic: "Análisis de Error en Simplificación",
+      question: "El alumno Roberto al simplificar la expresión (x + 4) / (x + 2) tachó la variable x de arriba y abajo obteniendo como resultado 4/2 = 2. ¿Por qué es ERRÓNEO el procedimiento de Roberto?",
+      options: [
+        "Porque debió restar las variables en lugar de dividirlas.",
+        "Porque las literales solo se pueden cancelar cuando están multiplicando a todo el numerador y denominador, nunca en términos que suman.",
+        "Porque 4/2 es igual a 1/2 y no a 2.",
+        "Porque la variable x debe valer siempre cero en fracciones."
+      ],
+      answer: 1,
+      explanation: "La regla fundamental establece que la cancelación solo es válida para factores (elementos multiplicando a todo el término)[cite: 7]. En (x + 4) / (x + 2) las variables están sumando, por lo que no pueden simplificarse[cite: 7]."
+    },
+    {
+      topic: "Ecuaciones Fraccionarias",
+      question: "Resuelve la ecuación fraccionaria: (x + 1) / (x − 2) = 2, con x ≠ 2.",
+      options: [
+        "x = 5",
+        "x = 3",
+        "x = −5",
+        "x = 2"
+      ],
+      answer: 0,
+      explanation: "Multiplicamos por (x − 2): x + 1 = 2(x − 2) ⇒ x + 1 = 2x − 4[cite: 7]. Despejando: 1 + 4 = 2x − x ⇒ x = 5[cite: 7]."
+    },
+    {
+      topic: "Conceptos de Igualdad (Identidad vs. Ecuación)",
+      question: "¿Cuál de las siguientes igualdades corresponde a una Identidad Algebraica (válida para todo valor permitido de la variable) y no a una Ecuación condicional?",
+      options: [
+        "3x + 5 = 20",
+        "x² − 4 = 0",
+        "(x + 3)² = x² + 6x + 9",
+        "2x − 1 = x + 4"
+      ],
+      answer: 2,
+      explanation: "Una identidad es verdadera para cualquier valor de x[cite: 7]. Al desarrollar el binomio al cuadrado (x + 3)² = x² + 6x + 9 se obtiene una equivalencia universal[cite: 7]."
+    },
+    {
+      topic: "Teorema de Vieta",
+      question: "Sin resolver explícitamente la ecuación cuadrática 3x² − 12x + 5 = 0, ¿cuál es el valor exacto de la suma de sus raíces (x₁ + x₂) según el Teorema de Vieta?",
+      options: [
+        "−4",
+        "4",
+        "5/3",
+        "−12"
+      ],
+      answer: 1,
+      explanation: "Por Vieta, en ax² + bx + c = 0, la suma de las raíces es x₁ + x₂ = −b / a[cite: 7]. Con a = 3 y b = −12: x₁ + x₂ = −(−12) / 3 = 12 / 3 = 4[cite: 7]."
+    },
+    {
+      topic: "Modelación Geométrica",
+      question: "El perímetro de un rectángulo es de 38 cm. Si el largo mide 5 cm más que el ancho (x), ¿cuál ecuación lineal permite hallar la dimensión del ancho y cuál es su valor?",
+      options: [
+        "4x + 10 = 38 → Ancho = 7 cm",
+        "2x + 5 = 38 → Ancho = 16.5 cm",
+        "4x + 5 = 38 → Ancho = 8.25 cm",
+        "x² + 5x = 38 → Ancho = 5 cm"
+      ],
+      answer: 0,
+      explanation: "Perímetro P = 2(largo) + 2(ancho) = 2(x + 5) + 2x = 4x + 10[cite: 7]. Igualando a 38: 4x + 10 = 38 ⇒ 4x = 28 ⇒ x = 7 cm[cite: 7]."
+    },
+    {
+      topic: "Soluciones Extrañas en Ecuaciones",
+      question: "Al intentar resolver la ecuación (x² − 9) / (x − 3) = 6, se obtiene analíticamente x = 3. Al evaluar la restricción del denominador (x ≠ 3), ¿qué conclusión correcta se debe determinar?",
+      options: [
+        "La solución es x = 3 ya que satisface la igualdad algebraica inicial.",
+        "La solución se transforma en x = −3 al cambiar de signo.",
+        "x = 3 es una solución extraña porque indetermina el denominador (3 − 3 = 0), por lo que la ecuación NO tiene solución real.",
+        "La ecuación tiene infinitas soluciones en todos los números reales."
+      ],
+      answer: 2,
+      explanation: "La restricción prohíbe x = 3 porque produce una división entre cero (3 − 3 = 0)[cite: 7]. Aunque la simplificación sugiera x = 3, se descarta como solución extraña y la ecuación no tiene solución real[cite: 7]."
+    },
+    {
+      topic: "Resta de Fracciones Algebraicas",
+      question: "Simplifica la resta de fracciones algebraicas: (x + 3) / (x − 1) − 2 / (x + 2) para x ≠ 1 y x ≠ −2.",
+      options: [
+        "(x² + 3x + 8) / [(x − 1)(x + 2)]",
+        "(x² + 3x + 4) / [(x − 1)(x + 2)]",
+        "(x + 1) / (x − 3)",
+        "(x² + 5x + 8) / [(x − 1)(x + 2)]"
+      ],
+      answer: 0,
+      explanation: "Mínimo común denominador: (x − 1)(x + 2)[cite: 7]. Numerador: (x + 3)(x + 2) − 2(x − 1) = (x² + 5x + 6) − (2x − 2) = x² + 3x + 8[cite: 7]."
+    },
+    {
+      topic: "Modelación Cuadrática",
+      question: "El área de un terreno rectangular es de 60 m². Si su largo mide 7 m más que su ancho (x), ¿cuáles son las dimensiones reales del terreno?",
+      options: [
+        "Ancho = 5 m, Largo = 12 m",
+        "Ancho = 6 m, Largo = 10 m",
+        "Ancho = 4 m, Largo = 15 m",
+        "Ancho = 3 m, Largo = 20 m"
+      ],
+      answer: 0,
+      explanation: "Área: x(x + 7) = 60 ⇒ x² + 7x − 60 = 0 ⇒ (x + 12)(x − 5) = 0[cite: 7]. Como las longitudes son positivas, x = 5 m (Ancho) y el Largo es 5 + 7 = 12 m[cite: 7]."
+    },
+    {
+      topic: "División y Factorización",
+      question: "Efectúa la división de fracciones algebraicas y simplifica al máximo: [(x² − 16) / (x + 3)] ÷ [(x − 4) / (x² − 9)]",
+      options: [
+        "(x + 4) / (x − 3)",
+        "(x + 4)(x − 3)",
+        "(x − 4)(x + 3)",
+        "1"
+      ],
+      answer: 1,
+      explanation: "Multiplicamos por el recíproco y factorizamos: [((x − 4)(x + 4)) / (x + 3)] · [((x − 3)(x + 3)) / (x − 4)][cite: 7]. Cancelamos (x − 4) y (x + 3), quedando (x + 4)(x − 3)[cite: 7]."
+    },
+    {
+      topic: "Análisis de Error: Pérdida de Raíces",
+      question: "Un estudiante resolvió la ecuación cuadrática incompleta x² − 5x = 0 dividiendo ambos lados entre x, obteniendo únicamente x = 5. ¿Por qué perdió una solución en el proceso?",
+      options: [
+        "Porque al dividir entre una variable se asume que esta no vale cero, omitiendo la solución x = 0 que se obtiene al factorizarla como x(x − 5) = 0.",
+        "Porque debió dividir entre 5 en lugar de x.",
+        "Porque la fórmula general prohíbe resolver ecuaciones sin término independiente.",
+        "Porque la solución única debió ser x = −5."
+      ],
+      answer: 0,
+      explanation: "Dividir entre x asume x ≠ 0[cite: 7]. Al factorizar x(x − 5) = 0 se observa que las dos soluciones válidas son x = 0 y x = 5[cite: 7]. Jamás se debe dividir una ecuación entre la incógnita."
+    },
+    {
+      topic: "Despeje Literal",
+      question: "Dada la fórmula del área de un trapecio A = [(B + b) · h] / 2, ¿cuál es el despeje correcto de la base menor b?",
+      options: [
+        "b = (2A / h) − B",
+        "b = (2A − B) / h",
+        "b = 2A − B − h",
+        "b = (A / 2h) + B"
+      ],
+      answer: 0,
+      explanation: "Multiplicamos por 2: 2A = (B + b)h[cite: 7]. Dividimos entre h: 2A / h = B + b[cite: 7]. Restamos B: b = (2A / h) − B[cite: 7]."
+    },
+    {
+      topic: "Factorización de Trinomios",
+      question: "¿Cuál es la factorización correcta del trinomio cuadrático x² − 8x + 15?",
+      options: [
+        "(x − 5)(x + 3)",
+        "(x + 5)(x + 3)",
+        "(x − 5)(x − 3)",
+        "(x − 8)(x + 15)"
+      ],
+      answer: 2,
+      explanation: "Buscamos dos números que multiplicados den +15 y sumados den −8: dichos números son −5 y −3[cite: 7]. La expresión factorizada es (x − 5)(x − 3)[cite: 7]."
+    },
+    {
+      topic: "Construcción de Ecuaciones Cuadráticas",
+      question: "¿Cuál de las siguientes ecuaciones cuadráticas tiene como soluciones exactas a los números x₁ = −4 y x₂ = 2?",
+      options: [
+        "x² − 2x − 8 = 0",
+        "x² + 2x − 8 = 0",
+        "x² + 6x + 8 = 0",
+        "x² − 2x + 8 = 0"
+      ],
+      answer: 1,
+      explanation: "Construimos a partir de los factores: (x − x₁)(x − x₂) = 0 ⇒ (x − (−4))(x − 2) = (x + 4)(x − 2) = x² + 2x − 8 = 0[cite: 7]."
+    }
+  ];
+
+  let questions = [];
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const resultTitle = document.getElementById("resultTitle");
+  const restartBtn = document.getElementById("restartBtn");
+
+  // Algoritmo Fisher-Yates para desordenar el arreglo
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function initQuiz() {
+    questions = shuffleArray(rawQuestions);
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🎉 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 ¡Casi! Revisa el procedimiento:";
+      feedbackText.innerHTML = `<strong>Explicación algebraica:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🏆 ¡Dominio Absoluto en Álgebra!";
+      msg = "¡Fabuloso! Resolviste correctamente los 20 reactivos. Dominas la simplificación, fracciones algebraicas, ecuaciones cuadráticas y propiedades de la igualdad.";
+    } else if (score >= 15) {
+      resultTitle.textContent = "🌟 ¡Gran Desempeño!";
+      msg = "Demuestras un dominio muy sólido. Revisa las explicaciones de los reactivos fallados para perfeccionar tu análisis.";
+    } else if (score >= 10) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por muy buen camino. Te recomendamos repasar el análisis del discriminante y la simplificación de fracciones.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Practicando!";
+      msg = "No te rindes. Refuerza las restricciones de dominio, la resolución de cuadráticas y vuelve a intentarlo (¡las preguntas volverán a cambiar de orden!).";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", (e) => {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    const key = e.key.toUpperCase();
+    if (["A", "1"].includes(key)) selectOption(0);
+    else if (["B", "2"].includes(key)) selectOption(1);
+    else if (["C", "3"].includes(key)) selectOption(2);
+    else if (["D", "4"].includes(key)) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  initQuiz();
+</script>
+
+</body>
+</html>
