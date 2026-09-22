@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Simulador de Práctica - ECOEMS & Nivel Superior</title>
+  <title>Banco de Preguntas: Física Integral - ECOEMS & Nivel Superior</title>
   <style>
     @font-face {
       font-family: 'Mogena';
@@ -139,7 +139,7 @@
 
     .progress-bar-fill {
       height: 100%;
-      width: 10%;
+      width: 5%;
       background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
       border-radius: 30px;
       transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -205,7 +205,7 @@
       line-height: 1.35;
       overflow-wrap: break-word;
       word-break: break-word;
-      min-height: 56px; /* Área táctil optimizada */
+      min-height: 56px;
       position: relative;
     }
 
@@ -355,7 +355,6 @@
       filter: brightness(1.1);
     }
 
-    /* Pantalla final animada */
     .result-screen {
       display: none;
       text-align: center;
@@ -400,7 +399,6 @@
       filter: brightness(1.1);
     }
 
-    /* Animaciones de Gamificación */
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
@@ -438,7 +436,7 @@
   <div class="progress-header" id="progressHeader">
     <div class="header-top">
       <div class="progress-info">
-        <span id="questionCounter">Pregunta 1 de 10</span>
+        <span id="questionCounter">Pregunta 1 de 20</span>
         <span id="scoreCounter">Aciertos: 0</span>
         <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
       </div>
@@ -470,84 +468,253 @@
 
   <div class="result-screen" id="resultScreen">
     <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
-    <div class="result-score" id="finalScore">0 / 10</div>
+    <div class="result-score" id="finalScore">0 / 20</div>
     <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
     <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
   </div>
 </div>
 
 <script>
-  // Estructura de reactivos de la Base Principal
   const questions = [
     {
-      topic: "Operaciones con Radicales",
-      question: "Simplifica la siguiente expresión con radicales: 5√18 − 3√8 + √50",
-      options: ["14√2", "12√2", "10√2", "16√2"],
+      topic: "Tercera Ley de Newton (Acción y Reacción)",
+      question: "Un deportista de 70 kg empuja un muro de concreto con una fuerza horizontal de 220 N hacia la derecha. ¿Cuál de las siguientes afirmaciones describe adecuadamente la fuerza de reacción ejercida por el muro?",
+      options: [
+        "El muro ejerce una fuerza de 220 N hacia la izquierda sobre el deportista, y ambas fuerzas no se anulan porque actúan sobre cuerpos distintos.",
+        "El muro no ejerce ninguna fuerza sobre el deportista debido a que el muro se mantiene completamente inmóvil.",
+        "El muro ejerce una fuerza mayor a 220 N sobre el deportista para lograr sostener la estructura sin desplazarse.",
+        "El muro ejerce 220 N hacia la izquierda y se anula completamente con el empuje del deportista por actuar sobre el mismo cuerpo."
+      ],
       answer: 0,
-      explanation: "Descomponiendo las raíces en factores primos: √18 = 3√2, √8 = 2√2, y √50 = 5√2. Sustituyendo: 5(3√2) − 3(2√2) + 5√2 = 15√2 − 6√2 + 5√2 = 14√2."
+      explanation: "Según la Tercera Ley de Newton, las fuerzas de acción y reacción poseen la misma magnitud (220 N) y sentidos opuestos[cite: 5]. No se anulan entre sí porque actúan sobre cuerpos diferentes (una sobre el muro y otra sobre el deportista)[cite: 5]."
     },
     {
-      topic: "Binomio de Newton",
-      question: "¿Cuál es el coeficiente del término con x³ en el desarrollo del binomio (x + 2)⁵?",
-      options: ["40", "80", "20", "160"],
+      topic: "Cálculo de Masa y Peso",
+      question: "Un objeto metálico tiene un peso de 490 N en la superficie terrestre, donde la aceleración gravitatoria es g = 9.8 m/s². ¿Cuál es la masa de dicho objeto y cuál sería su peso en la Luna, donde g_luna = 1.6 m/s²?",
+      options: [
+        "Masa = 50 kg; Peso en la Luna = 80 N.",
+        "Masa = 490 kg; Peso en la Luna = 490 N.",
+        "Masa = 80 kg; Peso en la Luna = 50 N.",
+        "Masa = 50 kg; Peso en la Luna = 490 N."
+      ],
       answer: 0,
-      explanation: "Aplicando el término general T_{k+1} = C(n,k)·a^{n-k}·b^k. Para obtener x³, k = 2. C(5,2) = 10, por lo que T₃ = 10·(x)³·(2)² = 40x³."
+      explanation: "La masa es invariable: m = P / g = 490 N / 9.8 m/s² = 50 kg[cite: 5]. En la Luna, el peso cambia por la menor gravedad: P_luna = m · g_luna = 50 kg × 1.6 m/s² = 80 N[cite: 5]."
     },
     {
-      topic: "Teorema del Residuo",
-      question: "Sea el polinomio P(x) = 3x³ − 2x² + 5x − 4. ¿Cuál es el residuo obtenido al dividir P(x) entre (x − 1)?",
-      options: ["2", "−2", "4", "0"],
-      answer: 0,
-      explanation: "Por el Teorema del Residuo, evaluamos P(1): P(1) = 3(1)³ − 2(1)² + 5(1) − 4 = 3 − 2 + 5 − 4 = 2."
+      topic: "Naturaleza de Pares Acción-Reacción",
+      question: "Dos bloques se encuentran en interacción directa. De acuerdo con la Tercera Ley de Newton (pares acción-reacción), ¿cuál de los siguientes enunciados es verdadero?",
+      options: [
+        "La fuerza de acción siempre se aplica primero y la reacción ocurre unos instantes después.",
+        "Las fuerzas de acción y reacción son idénticas en magnitud y sentido, por lo que aceleran al mismo cuerpo.",
+        "Las fuerzas de acción y reacción poseen la misma magnitud, dirección opuesta y actúan simultáneamente sobre objetos diferentes.",
+        "Si un objeto tiene mayor masa que el otro, ejercerá una fuerza de reacción considerablemente menor."
+      ],
+      answer: 2,
+      explanation: "Las fuerzas del par acción-reacción son simultáneas, iguales en magnitud, opuestas en sentido y aplicadas a objetos distintos (F_A→B = −F_B→A)[cite: 5]."
     },
     {
-      topic: "Teorema del Factor",
-      question: "Determina el valor de la constante k para que el binomio (x + 2) sea un factor exacto del polinomio P(x) = x³ + kx² + 5x + 6.",
-      options: ["3", "−3", "2", "−2"],
-      answer: 0,
-      explanation: "Por el Teorema del Factor, P(−2) = 0. Sustituyendo: (−2)³ + k(−2)² + 5(−2) + 6 = 0 ⇒ −8 + 4k − 10 + 6 = 0 ⇒ 4k = 12 ⇒ k = 3."
+      topic: "Equilibrio a Velocidad Constante",
+      question: "Un automóvil avanza en línea recta a una velocidad constante de 90 km/h sobre una autopista horizontal. ¿Qué se puede afirmar sobre el conjunto de fuerzas horizontales (motor y resistencia del aire/fricción) que actúan sobre el vehículo?",
+      options: [
+        "La fuerza del motor es mayor que la fricción porque el auto se mueve a alta velocidad.",
+        "La fuerza neta horizontal es cero (ΣF = 0) porque la velocidad se mantiene constante.",
+        "La fuerza del motor debe ser exactamente cero una vez alcanzada dicha velocidad.",
+        "La fricción es mayor que la fuerza del motor, provocando que el auto mantenga su inercia."
+      ],
+      answer: 1,
+      explanation: "Al avanzar a velocidad constante (90 km/h), la aceleración es nula (a = 0)[cite: 5]. De acuerdo con ΣF = m · a, la fuerza neta horizontal debe ser cero (la fuerza de tracción del motor iguala a la resistencia de fricción y aire)[cite: 5]."
     },
     {
-      topic: "Simplificación Algebraica",
-      question: "Simplifica la expresión: [(x² − 16) / (x² − 8x + 16)] · [(x − 4) / (x + 4)]",
-      options: ["1", "(x − 4) / (x + 4)", "(x + 4) / (x − 4)", "x − 4"],
-      answer: 0,
-      explanation: "Factorizando: x² − 16 = (x − 4)(x + 4) y x² − 8x + 16 = (x − 4)². Al multiplicar y cancelar factores comunes en el numerador y denominador se obtiene 1."
+      topic: "Fricción y Movimiento Uniforme",
+      question: "Un paquete de libros se desliza sobre una mesa horizontal hacia la derecha a velocidad constante mientras una persona lo empuja con una fuerza horizontal de 35 N. ¿Qué se puede inferir con certeza sobre la fuerza de fricción entre el paquete y la mesa?",
+      options: [
+        "La fricción debe ser mayor a 35 N hacia la izquierda, ya que de lo contrario el paquete aceleraría.",
+        "La fricción es exactamente de 35 N dirigida hacia la izquierda, haciendo que la fuerza neta sea igual a cero (ΣF = 0).",
+        "La fricción es de 0 N porque el paquete ya se encuentra en movimiento uniforme.",
+        "La fricción apunta a la derecha con 35 N para mantener el movimiento constante del cuerpo."
+      ],
+      answer: 1,
+      explanation: "Si el paquete se desplaza a velocidad constante, a = 0 y por ende ΣF = 0[cite: 5]. Por lo tanto, la fuerza de fricción debe equilibrar exactamente a la fuerza aplicada: 35 N dirigida hacia la izquierda[cite: 5]."
     },
     {
-      topic: "Operaciones con Radicales",
-      question: "Al simplificar la expresión con radicales √45 + 2√20 − √80, ¿qué resultado se obtiene?",
-      options: ["3√5", "5√5", "2√5", "√5"],
-      answer: 0,
-      explanation: "Extrayendo factores: √45 = 3√5, 2√20 = 4√5, y √80 = 4√5. Sumando y restando: 3√5 + 4√5 − 4√5 = 3√5."
+      topic: "Proporcionalidad en Energía Cinética",
+      question: "Si un ciclista duplica su velocidad mientras transita por una vía plana (pasando de v a 2v), ¿qué cambio ocurre con su energía cinética (E_c = 1/2 m v²)?",
+      options: [
+        "Se duplica (se multiplica por 2).",
+        "Se triplica (se multiplica por 3).",
+        "Se cuadruplica (se multiplica por 4).",
+        "Permanece igual porque la masa del ciclista no cambia."
+      ],
+      answer: 2,
+      explanation: "La energía cinética depende del cuadrado de la velocidad (v²)[cite: 5]. Si la velocidad se duplica (2v), el factor cuadrático es (2)² = 4, cuadruplicando la energía cinética inicial[cite: 5]."
     },
     {
-      topic: "Binomio de Newton",
-      question: "¿Cuál es el segundo término (T₂) en el desarrollo del binomio de Newton (x + 3)⁴?",
-      options: ["12x³", "4x³", "36x²", "6x²"],
-      answer: 0,
-      explanation: "Para T₂ se usa k = 1: T₂ = C(4,1)·(x)³·(3)¹ = 4·x³·3 = 12x³."
+      topic: "Primera Ley de Newton en el Espacio",
+      question: "Un objeto se encuentra en el espacio intergaláctico lejos de cualquier fricción y sobre él actúa una fuerza neta resultante igual a cero (ΣF = 0). ¿Cuál es el estado de movimiento que mantendrá dicho objeto?",
+      options: [
+        "Permanecerá obligatoriamente en reposo total sin posibilidad de desplazamiento.",
+        "Reducirá su velocidad de forma progresiva hasta detenerse completamente por falta de fuerza.",
+        "Mantendrá una aceleración constante directamente proporcional a su masa total.",
+        "Permanecerá en reposo o continuará moviéndose en línea recta a velocidad constante (a = 0)."
+      ],
+      answer: 3,
+      explanation: "Si la fuerza neta es nula (ΣF = 0), la aceleración es cero (a = 0)[cite: 5]. Según la 1.ª Ley de Newton, el cuerpo mantendrá su estado de reposo o continuará en Movimiento Rectilíneo Uniforme (MRU)[cite: 5]."
     },
     {
-      topic: "Teorema del Residuo",
-      question: "Si se divide el polinomio P(x) = x⁴ − 3x³ + 2x − 5 entre el binomio (x + 2), ¿cuál es el valor del residuo?",
-      options: ["31", "21", "−15", "9"],
+      topic: "Conservación y Transformación de Energía",
+      question: "Mariana afirma: 'Cuando arrastro una caja pesada sobre el suelo y se calienta la base de la caja, la energía cinética se destruyó por culpa de la fricción'. ¿Por qué es incorrecta la afirmación de Mariana?",
+      options: [
+        "Porque la energía no se destruye, sino que parte de la energía mecánica se transforma en energía térmica (calor).",
+        "Porque la fricción jamás genera calor durante el rozamiento entre dos superficies sólidas.",
+        "Porque la energía cinética se convirtió en energía potencial gravitatoria al estar en el suelo.",
+        "Porque la caja debió haber ganado energía química al deslizarse más rápido."
+      ],
       answer: 0,
-      explanation: "Evaluamos en c = −2: P(−2) = (−2)⁴ − 3(−2)³ + 2(−2) − 5 = 16 + 24 − 4 − 5 = 31."
+      explanation: "El principio de conservación establece que la energía no se crea ni se destruye, solo se transforma[cite: 5]. La fricción realiza un trabajo mecánico disipativo que convierte la energía mecánica en energía térmica (calor)[cite: 5]."
     },
     {
-      topic: "Teorema del Factor",
-      question: "¿Cuál de los siguientes binomios es un factor exacto del polinomio P(x) = x³ − 4x² + x + 6?",
-      options: ["x − 2", "x + 2", "x − 3", "x + 1"],
-      answer: 0,
-      explanation: "Evaluando P(2): (2)³ − 4(2)² + 2 + 6 = 8 − 16 + 8 = 0. Como el residuo es 0, (x − 2) es factor exacto."
+      topic: "Variación de Masa y Peso entre Planetas",
+      question: "Un astronauta tiene una masa de 75 kg en la Tierra, donde la aceleración de la gravedad es de aproximadamente g = 9.8 m/s². Posteriormente viaja a Marte, donde la gravedad es de aproximadamente g = 3.7 m/s². ¿Cómo cambian su masa y su peso en Marte respecto a la Tierra?",
+      options: [
+        "Su masa disminuye a 28.3 kg y su peso se mantiene constante en 735 N.",
+        "Su masa se mantiene en 75 kg, mientras que su peso disminuye de 735 N a 277.5 N.",
+        "Tanto su masa como su peso disminuyen exactamente a la mitad de los valores terrestres.",
+        "Su peso permanece en 735 N porque la cantidad de materia de una persona no cambia al viajar al espacio."
+      ],
+      answer: 1,
+      explanation: "La masa mide la cantidad de materia y permanece fija en 75 kg[cite: 5]. El peso se calcula con P = m · g: en la Tierra es 75 kg × 9.8 m/s² = 735 N, y en Marte es 75 kg × 3.7 m/s² = 277.5 N[cite: 5]."
     },
     {
-      topic: "Simplificación Algebraica",
-      question: "Simplifica la fracción algebraica (x² − 25) / (x² + 5x):",
-      options: ["(x − 5) / x", "(x + 5) / x", "x − 5", "x / (x − 5)"],
+      topic: "Cálculo de Energía Potencial Gravitatoria",
+      question: "Una maceta de 4 kg reposa en el borde de un balcón a una altura de 5 m sobre el suelo. Considerando g = 9.8 m/s², ¿cuál es su energía potencial gravitatoria (E_p = mgh)?",
+      options: [
+        "20 J",
+        "196 J",
+        "39.2 J",
+        "98 J"
+      ],
+      answer: 1,
+      explanation: "Sustituyendo directamente en la fórmula de energía potencial gravitatoria[cite: 5]: E_p = m · g · h = 4 kg × 9.8 m/s² × 5 m = 196 Joules (J)[cite: 5]."
+    },
+    {
+      topic: "Ley de Gravitación Universal y Distancia",
+      question: "Con base en la Ley de Gravitación Universal (F = G · (m₁ · m₂ / r²)), ¿qué le ocurre a la fuerza de atracción gravitatoria entre dos masas si la distancia (r) que las separa aumenta al doble?",
+      options: [
+        "La fuerza gravitatoria se reduce a la cuarta parte de su valor original.",
+        "La fuerza gravitatoria disminuye a la mitad de su valor original.",
+        "La fuerza gravitatoria se duplica debido al incremento de la distancia espacial.",
+        "La fuerza gravitatoria permanece constante porque las masas m₁ y m₂ no cambian."
+      ],
       answer: 0,
-      explanation: "Factorizando: (x − 5)(x + 5) / x(x + 5). Cancelando (x + 5) en ambos lados nos queda (x − 5) / x."
+      explanation: "En la fórmula F = G · (m₁ · m₂ / r²), la fuerza varía inversamente con el cuadrado de la distancia[cite: 5]. Si la distancia se duplica (2r), el divisor se vuelve (2)² = 4, reduciéndose la fuerza a la cuarta parte (F/4)[cite: 5]."
+    },
+    {
+      topic: "Conservación de Energía Mecánica en Montaña Rusa",
+      question: "Un carrito de montaña rusa recorre una pista sin fricción pasando por tres puntos: el punto A (la cima más alta, a 20 m de altura), el punto B (al nivel del suelo, 0 m) y el punto C (una colina intermedia a 10 m de altura). ¿En qué punto la energía cinética es MÁXIMA y en cuál es CERO? (Trayectoria: A → B → C)",
+      options: [
+        "Cinética máxima en A; Cinética cero en B.",
+        "Cinética máxima en B; Cinética cero en A (si parte del reposo).",
+        "Cinética máxima en C; Cinética cero en B.",
+        "La energía cinética es idéntica en los tres puntos A, B y C."
+      ],
+      answer: 1,
+      explanation: "En la cima A (20 m), la altura es máxima, por lo que toda la energía es potencial (E_c = 0 si parte del reposo)[cite: 5]. En el punto B (0 m), la altura es nula y la energía potencial se ha convertido totalmente en cinética, alcanzando su valor MÁXIMO (máxima velocidad)[cite: 5]."
+    },
+    {
+      topic: "Transformación de Energías en Caída Libre",
+      question: "Una manzana se desprende de la rama de un árbol y cae libremente hacia el suelo, sin considerar la resistencia del aire. ¿Cómo varían sus energías cinética (E_c) y potencial gravitatoria (E_p) durante el descenso?",
+      options: [
+        "La energía potencial aumenta mientras la energía cinética disminuye paulatinamente.",
+        "Ambas energías disminuyen progresivamente a medida que la manzana se acerca al suelo.",
+        "La energía potencial disminuye y la energía cinética aumenta, conservándose la energía mecánica total.",
+        "La energía cinética se mantiene constante porque la aceleración de la gravedad no cambia."
+      ],
+      answer: 2,
+      explanation: "Durante la caída libre en ausencia de fricción, la energía mecánica se conserva[cite: 5]. La pérdida gradual de altura reduce la energía potencial (E_p), mientras que el incremento continuo de velocidad aumenta la energía cinética (E_c)[cite: 5]."
+    },
+    {
+      topic: "Tercera Ley de Newton Aplicada a Fluidos",
+      question: "Cuando un remo empuja el agua hacia ATRÁS con fuerza en una canoa, la canoa se desplaza hacia ADELANTE sobre la superficie del río. ¿Qué concepto físico explica directamente este fenómeno?",
+      options: [
+        "La conservación de la masa en los fluidos líquidos.",
+        "El par de fuerzas de Acción y Reacción (Tercera Ley de Newton).",
+        "El aumento de la fuerza gravitatoria sobre el remo.",
+        "La fuerza neta constante que acelera a la canoa sin resistencia."
+      ],
+      answer: 1,
+      explanation: "El remo ejerce una fuerza sobre el agua hacia atrás (Acción), y de manera simultánea el agua ejerce una fuerza de igual magnitud sobre la canoa en sentido opuesto, impulsándola hacia adelante (Reacción)[cite: 5]."
+    },
+    {
+      topic: "Cadena de Transformación de Energía con Fricción",
+      question: "Un vagón de juguete parte del reposo desde la parte más alta de una rampa inclinada. Al llegar al fondo de la rampa, continúa su trayectoria sobre una pista horizontal con rugosidad hasta detenerse por completo. ¿Cuál es la transformación global de energía que ocurrió en todo el proceso?",
+      options: [
+        "La energía potencial inicial se transformó en energía cinética durante la bajada y finalmente en energía térmica (calor) debido a la fricción.",
+        "La energía potencial inicial se destruyó completamente al detenerse el vagón en el tramo horizontal.",
+        "La energía cinética producida al inicio se convirtió en energía potencial gravitatoria en el plano horizontal.",
+        "La energía mecánica total aumentó debido al impulso constante generado por la rampa rugosa."
+      ],
+      answer: 0,
+      explanation: "Al inicio, la altura le otorga energía potencial gravitatoria, la cual se transforma en energía cinética conforme desciende[cite: 5]. Finalmente, en la sección rugosa, el trabajo de la fricción convierte progresivamente esa energía cinética en energía térmica (calor) hasta detenerlo[cite: 5]."
+    },
+    {
+      topic: "Gravitación Universal y Cambio de Masa",
+      question: "Dos asteroides en el espacio exterior se atraen con una fuerza gravitatoria F. Si la masa de uno de los asteroides se triplica (3m₁) manteniendo la misma distancia entre ellos, ¿cuál será la nueva fuerza gravitatoria entre ambos?",
+      options: [
+        "Permanecerá exactamente igual (F).",
+        "Se reducirá a un tercio (F/3).",
+        "Se triplicará (3F).",
+        "Aumentará nueve veces (9F)."
+      ],
+      answer: 2,
+      explanation: "En la Ley de Gravitación Universal F = G · (m₁ · m₂ / r²), la fuerza es directamente proporcional al producto de las masas[cite: 5]. Si una de las masas se triplica (3m₁), la fuerza resultante se triplica en la misma proporción (3F)[cite: 5]."
+    },
+    {
+      topic: "Conversión de Energía Elástica a Cinética",
+      question: "Un joven sostiene horizontalmente un resorte comprimido. Al liberarlo, el resorte empuja un carrito hacia adelante sobre una superficie lisa (sin fricción). ¿Qué secuencia de conversión de energía describe adecuadamente este fenómeno?",
+      options: [
+        "Energía cinética → Energía potencial gravitatoria → Energía térmica.",
+        "Energía potencial elástica → Energía cinética del carrito.",
+        "Energía térmica → Energía potencial gravitatoria → Energía mecánica total.",
+        "Energía cinética → Energía potencial elástica → Energía química."
+      ],
+      answer: 1,
+      explanation: "La deformación al comprimir el resorte acumula energía potencial elástica[cite: 5]. Al liberarse, el resorte realiza trabajo sobre el carrito, convirtiendo dicha energía acumulada en energía cinética de movimiento[cite: 5]."
+    },
+    {
+      topic: "Cálculo de Fuerza Neta y Aceleración",
+      question: "Una fuerza de empuje de 50 N actúa hacia la derecha sobre una caja de 10 kg que experimenta una fricción constante de 20 N hacia la izquierda. ¿Cuál es la fuerza neta y la aceleración resultante de la caja?",
+      options: [
+        "Fuerza neta = 70 N; Aceleración = 7 m/s².",
+        "Fuerza neta = 30 N; Aceleración = 3 m/s².",
+        "Fuerza neta = 30 N; Aceleración = 0.33 m/s².",
+        "Fuerza neta = 0 N; Aceleración = 0 m/s²."
+      ],
+      answer: 1,
+      explanation: "La fuerza neta horizontal es la resta de las fuerzas opuestas: ΣF = 50 N − 20 N = 30 N[cite: 5]. Aplicando la Segunda Ley de Newton (a = ΣF / m): a = 30 N / 10 kg = 3 m/s²[cite: 5]."
+    },
+    {
+      topic: "Disipación de Energía Mecánica en Viscosidad",
+      question: "Durante una práctica de laboratorio, un estudiante analiza la caída de una esfera de acero dentro de un tubo lleno de aceite denso. Observa que la esfera alcanza rápidamente una velocidad constante en su caída. ¿Qué ocurre con la energía mecánica de la esfera mientras cae a velocidad constante?",
+      options: [
+        "Permanecerá constante porque la velocidad no cambia y por tanto la energía cinética es fija.",
+        "Aumenta constantemente dado que el fluido ejerce un empuje ascendente sobre la esfera.",
+        "Disminuye, porque la energía potencial se reduce (al perder altura) mientras la cinética no cambia, transformándose esa pérdida en energía térmica debido a la viscosidad del aceite.",
+        "Se transforma íntegramente en energía potencial gravitatoria acumulada al llegar al fondo."
+      ],
+      answer: 2,
+      explanation: "A velocidad constante, la energía cinética se mantiene fija, pero la energía potencial disminuye conforme la esfera pierde altura[cite: 5]. Como consecuencia, la energía mecánica total disminuye, disipándose en forma de calor por la fricción viscosa con el aceite[cite: 5]."
+    },
+    {
+      topic: "Análisis de Fuerzas en Reposo",
+      question: "Carlos observa una piedra pesada descansando sobre el suelo y afirma: 'La piedra está inmóvil porque sobre ella no actúa ninguna fuerza física'. ¿Por qué es ERRÓNEA la conclusión de Carlos?",
+      options: [
+        "Porque sobre la piedra actúan el peso (hacia abajo) y la fuerza normal del suelo (hacia arriba), las cuales suman una fuerza neta igual a cero (ΣF = 0).",
+        "Porque las fuerzas solo existen cuando los objetos se mueven a grandes velocidades.",
+        "Porque la fuerza de atracción gravitatoria solo actúa sobre objetos voladores en el aire.",
+        "Porque la piedra ejerce fuerza sobre el suelo pero el suelo no responde con ninguna fuerza."
+      ],
+      answer: 0,
+      explanation: "Estar en reposo no implica la ausencia de fuerzas, sino que la suma vectorial de todas las fuerzas aplicadas es igual a cero (ΣF = 0)[cite: 5]. El peso jalando hacia abajo se equilibra exactamente con la fuerza Normal que el suelo ejerce hacia arriba[cite: 5]."
     }
   ];
 
@@ -604,7 +771,7 @@
   }
 
   function selectOption(index) {
-    if (checkBtn.style.display === "none") return; // Si ya comprobó, no cambiar
+    if (checkBtn.style.display === "none") return;
     selectedOptionIndex = index;
     const allOptions = optionsContainer.querySelectorAll(".option-btn");
     allOptions.forEach((btn, idx) => {
@@ -643,12 +810,12 @@
       allOptions[q.answer].classList.add("correct");
 
       feedbackPanel.className = "feedback-panel error";
-      feedbackTitle.innerHTML = "💡 ¡Casi! Revisa el procedimiento:";
-      feedbackText.innerHTML = `<strong>Explicación paso a paso:</strong> ${q.explanation}`;
+      feedbackTitle.innerHTML = "💡 ¡Casi! Revisa la explicación:";
+      feedbackText.innerHTML = `<strong>Explicación física:</strong> ${q.explanation}`;
     }
 
     feedbackPanel.style.display = "block";
-    nextBtn.focus(); // Enfocar automáticamente el botón de siguiente
+    nextBtn.focus();
   }
 
   function nextQuestion() {
@@ -668,18 +835,18 @@
     finalScore.textContent = `${score} / ${questions.length}`;
 
     let msg = "";
-    if (score === 10) {
-      resultTitle.textContent = "🏆 ¡Dominio Total!";
-      msg = "¡Puntaje perfecto! Estás totalmente preparado para destacar en tu examen de admisión.";
-    } else if (score >= 7) {
+    if (score === 20) {
+      resultTitle.textContent = "🏆 ¡Dominio Perfecto en Física!";
+      msg = "¡Fantástico! Has resuelto correctamente los 20 reactivos. Dominas la dinámica, la ley de gravitación universal, las leyes de Newton y las transformaciones de energía.";
+    } else if (score >= 15) {
       resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
-      msg = "Tienes bases sólidas. Revisa los pequeños detalles en las explicaciones para pulir tu técnica.";
-    } else if (score >= 5) {
+      msg = "Demuestras una preparación sobresaliente. Revisa los pocos detalles conceptuales o de cálculo para asegurar tu puntaje máximo.";
+    } else if (score >= 10) {
       resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
-      msg = "Vas por buen camino. Te sugerimos repasar los temas con menor puntaje e intentarlo de nuevo.";
+      msg = "Cuentas con buenas bases en física. Te recomendamos repasar los conceptos de conservación de energía y proporcionalidades de gravitación.";
     } else {
       resultTitle.textContent = "💪 ¡A Seguir Practicando!";
-      msg = "No te desanimes. Vuelve a estudiar los conceptos clave de la ficha e inténtalo una vez más.";
+      msg = "No te desanimes. Repasa los fundamentos de la Tercera Ley de Newton, masa vs. peso y trabajo-fricción para volver a intentarlo.";
     }
     finalMessage.textContent = msg;
   }
@@ -693,12 +860,10 @@
     loadQuestion();
   }
 
-  // Event Listeners
   checkBtn.addEventListener("click", checkAnswer);
   nextBtn.addEventListener("click", nextQuestion);
   restartBtn.addEventListener("click", restartQuiz);
 
-  // Soporte de Atajos de Teclado (A, B, C, D / 1, 2, 3, 4 y Enter)
   document.addEventListener("keydown", (e) => {
     if (resultScreen.style.display === "block") {
       if (e.key === "Enter") restartQuiz();
