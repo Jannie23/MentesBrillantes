@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Matemáticas Preparatoria - Desigualdades, Sistemas y Funciones</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 35%, #bae6fd 70%, #bbf7d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-main: #18181b;
+      --text-muted: #4b5563;
+
+      --neon-pink: #ff007f;
+      --pastel-pink: #fdf2f8;
+      --neon-purple: #9333ea;
+      --pastel-purple: #f3e8ff;
+      --neon-blue: #00b4d8;
+      --pastel-blue: #e0f2fe;
+      --neon-green: #10b981;
+      --pastel-green: #d1fae5;
+      --neon-red: #f43f5e;
+      --pastel-red: #ffe4e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-purple);
+      box-shadow: 0 20px 45px rgba(147, 51, 234, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(253, 242, 248, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-pink);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-purple);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      filter: contrast(1.1) drop-shadow(0 4px 8px rgba(147, 51, 234, 0.18));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.08) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: var(--pastel-purple);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid #d8b4fe;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 4px 12px rgba(0, 180, 216, 0.25);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: clamp(2px, 0.25vw, 3px) solid #e9d5ff;
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 18px rgba(255, 0, 127, 0.15);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-purple);
+      background-color: var(--pastel-purple);
+      color: var(--neon-purple);
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: var(--neon-purple);
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-purple);
+      border-color: var(--neon-purple);
+      color: #ffffff;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #065f46 !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.35) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #9f1239 !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: #ecfdf5;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #065f46;
+    }
+
+    .feedback-panel.error {
+      background-color: #fff1f2;
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #9f1239;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(255, 0, 127, 0.3);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.1);
+    }
+    .btn-check:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+      box-shadow: 0 6px 16px rgba(0, 180, 216, 0.3);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.1);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-purple);
+      font-weight: 900;
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 20px rgba(147, 51, 234, 0.35);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.1);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 15</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="https://files.catbox.moe/k8pjc7.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 15</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const rawQuestions = [
+    {
+      topic: "Desigualdades Lineales",
+      question: "Resuelve la siguiente inecuación lineal: 4(x − 2) + 3 > 2x + 5",
+      options: [
+        "x > 5",
+        "x > 4",
+        "x < 5",
+        "x > 2"
+      ],
+      answer: 0,
+      explanation: "4x − 8 + 3 > 2x + 5 ⇒ 4x − 5 > 2x + 5 ⇒ 2x > 10 ⇒ x > 5[cite: 14]."
+    },
+    {
+      topic: "Desigualdades Lineales",
+      question: "Determina el conjunto solución de: 7 − 3x ≤ 19",
+      options: [
+        "x ≤ −4",
+        "x ≥ −4",
+        "x ≥ 4",
+        "x ≤ 4"
+      ],
+      answer: 1,
+      explanation: "−3x ≤ 12 ⇒ Al dividir entre un número negativo, la desigualdad se invierte: x ≥ 12 / (−3) ⇒ x ≥ −4[cite: 14]."
+    },
+    {
+      topic: "Modelación de Desigualdades",
+      question: "Un servicio de suscripción cobra una cuota fija de $50 más $12 por cada módulo extra. Si se dispone de máximo $170, ¿cuál es el número máximo entero de módulos extras que se pueden adquirir?",
+      options: [
+        "9 módulos",
+        "11 módulos",
+        "10 módulos",
+        "12 módulos"
+      ],
+      answer: 2,
+      explanation: "50 + 12x ≤ 170 ⇒ 12x ≤ 120 ⇒ x ≤ 10 módulos[cite: 14]."
+    },
+    {
+      topic: "Desigualdades e Intervalos",
+      question: "¿Cuál es el conjunto solución expresado en intervalo para la desigualdad −2x + 8 < 2?",
+      options: [
+        "(−∞, 3)",
+        "(3, ∞)",
+        "[3, ∞)",
+        "(−∞, 3]"
+      ],
+      answer: 1,
+      explanation: "−2x < −6 ⇒ Al dividir entre −2 cambia el sentido: x > 3 ⇒ En notación de intervalo: (3, ∞)[cite: 14]."
+    },
+    {
+      topic: "Desigualdades Lineales",
+      question: "Al resolver la inecuación 2(3x − 1) ≤ 5x + 4, la solución para x es:",
+      options: [
+        "x ≤ 6",
+        "x ≥ 6",
+        "x ≤ 2",
+        "x ≥ −6"
+      ],
+      answer: 0,
+      explanation: "6x − 2 ≤ 5x + 4 ⇒ 6x − 5x ≤ 4 + 2 ⇒ x ≤ 6[cite: 14]."
+    },
+    {
+      topic: "Sistemas de Ecuaciones (Reducción)",
+      question: "Resuelve el sistema mediante el método de reducción: 2x + y = 11 y x − y = 1. ¿Cuál es el valor de x?",
+      options: [
+        "x = 3",
+        "x = 4",
+        "x = 5",
+        "x = 2"
+      ],
+      answer: 1,
+      explanation: "Sumando ambas ecuaciones directamente: (2x + x) + (y − y) = 11 + 1 ⇒ 3x = 12 ⇒ x = 4[cite: 14]."
+    },
+    {
+      topic: "Modelación de Sistemas de Ecuaciones",
+      question: "En una librería se vendieron 45 libros en total, entre novelas y cómics. Si las novelas cuestan $150 y los cómics $80, y el ingreso total fue de $4,800, ¿cuántas novelas se vendieron?",
+      options: [
+        "15 novelas",
+        "25 novelas",
+        "20 novelas",
+        "30 novelas"
+      ],
+      answer: 2,
+      explanation: "Ecuaciones: x + y = 45 y 150x + 80y = 4800[cite: 14]. Sustituyendo y = 45 − x: 150x + 80(45 − x) = 4800 ⇒ 70x = 1400 ⇒ x = 20 novelas[cite: 14]."
+    },
+    {
+      topic: "Sistemas de Ecuaciones Lineales",
+      question: "Dado el sistema 3x + 2y = 12 y x + 2y = 8, halla el valor de y.",
+      options: [
+        "y = 2",
+        "y = 3",
+        "y = 1",
+        "y = 4"
+      ],
+      answer: 1,
+      explanation: "Restando la segunda ecuación a la primera: 2x = 4 ⇒ x = 2[cite: 14]. Sustituyendo en la 2.ª ecuación: 2 + 2y = 8 ⇒ 2y = 6 ⇒ y = 3[cite: 14]."
+    },
+    {
+      topic: "Sistemas de Ecuaciones Lineales",
+      question: "¿Cuál es la solución del sistema x + 3y = 9 y 2x − y = 4?",
+      options: [
+        "(3, 2)",
+        "(2, 3)",
+        "(5, 2)",
+        "(3, 1)"
+      ],
+      answer: 0,
+      explanation: "De la 2.ª ecuación: y = 2x − 4[cite: 14]. Sustituyendo en la 1.ª: x + 3(2x − 4) = 9 ⇒ 7x − 12 = 9 ⇒ 7x = 21 ⇒ x = 3[cite: 14]. Luego: y = 2(3) − 4 = 2[cite: 14]. Solución: (3, 2)[cite: 14]."
+    },
+    {
+      topic: "Regla de Cramer / Determinantes",
+      question: "Para el sistema 5x + 2y = 16 y 3x − 4y = 7, calcula el determinante principal del sistema (Δ).",
+      options: [
+        "Δ = −26",
+        "Δ = 26",
+        "Δ = −14",
+        "Δ = 14"
+      ],
+      answer: 0,
+      explanation: "Δ = (5)(−4) − (2)(3) = −20 − 6 = −26[cite: 14]."
+    },
+    {
+      topic: "Regla de Cramer / Determinantes",
+      question: "Resuelve mediante determinantes el sistema x + 2y = 8 y 3x − y = 3. ¿Cuál es el valor del determinante de y (Δy)?",
+      options: [
+        "Δy = −21",
+        "Δy = −15",
+        "Δy = 21",
+        "Δy = −7"
+      ],
+      answer: 0,
+      explanation: "Δy = (1)(3) − (8)(3) = 3 − 24 = −21[cite: 14]."
+    },
+    {
+      topic: "Regla de Cramer / Determinantes",
+      question: "Al aplicar la Regla de Cramer al sistema 2x + 5y = 19 y 4x + 3y = 17, el valor de la variable y es:",
+      options: [
+        "y = 1",
+        "y = 2",
+        "y = 3",
+        "y = 4"
+      ],
+      answer: 2,
+      explanation: "Δ = (2)(3) − (5)(4) = 6 − 20 = −14[cite: 14]. Δy = (2)(17) − (19)(4) = 34 − 76 = −42[cite: 14]. y = Δy / Δ = −42 / −14 = 3[cite: 14]."
+    },
+    {
+      topic: "Dominio de Funciones Radicales",
+      question: "Sea la función f(x) = √(16 − 4x) en los números reales, ¿cuál es su dominio?",
+      options: [
+        "x ≥ 4",
+        "x ≤ 4",
+        "x < 4",
+        "x ≤ −4"
+      ],
+      answer: 1,
+      explanation: "El radicando debe ser no negativo: 16 − 4x ≥ 0 ⇒ −4x ≥ −16 ⇒ Al dividir entre −4: x ≤ 4[cite: 14]."
+    },
+    {
+      topic: "Dominio de Funciones Racionales",
+      question: "Determina el dominio de la función racional f(x) = (2x + 1) / (x − 5).",
+      options: [
+        "Todos los reales tales que x ≠ 5",
+        "Todos los reales tales que x ≠ −5",
+        "x > 5",
+        "Todos los reales tales que x ≠ −1/2"
+      ],
+      answer: 0,
+      explanation: "El denominador no puede ser cero: x − 5 ≠ 0 ⇒ x ≠ 5[cite: 14]. El dominio son todos los números reales excepto el 5[cite: 14]."
+    },
+    {
+      topic: "Dominio de Funciones Radicales",
+      question: "Dada la función f(x) = √(2x − 8), ¿cuál es la condición adecuada para encontrar su dominio?",
+      options: [
+        "2x − 8 ≠ 0",
+        "2x − 8 > 0",
+        "2x − 8 ≤ 0",
+        "2x − 8 ≥ 0"
+      ],
+      answer: 3,
+      explanation: "Para que la raíz cuadrada exista en los números reales, el radicando debe ser mayor o igual a cero: 2x − 8 ≥ 0[cite: 14]."
+    }
+  ];
+
+  let questions = [];
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const resultTitle = document.getElementById("resultTitle");
+  const restartBtn = document.getElementById("restartBtn");
+
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function initQuiz() {
+    questions = shuffleArray(rawQuestions);
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🎉 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 ¡Casi! Revisa el procedimiento:";
+      feedbackText.innerHTML = `<strong>Explicación matemática:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 15) {
+      resultTitle.textContent = "🏆 ¡Puntaje Perfecto en Matemáticas!";
+      msg = "¡Súper! Resolviste correctamente los 15 reactivos. Dominas las desigualdades, los sistemas de ecuaciones y el cálculo de dominios.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "🌟 ¡Gran Trabajo!";
+      msg = "Tienes un manejo muy sólido de los temas algebraicos. Revisa los pequeños detalles en la Regla de Cramer para no fallar ninguna.";
+    } else if (score >= 8) {
+      resultTitle.textContent = "👍 ¡Buen Intento!";
+      msg = "Vas por buen camino. Te sugerimos repasar el cambio de sentido al dividir entre números negativos en desigualdades.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡Ánimo! Refuerza el método de determinantes y la restricción de dominios reales, luego intenta de nuevo (las preguntas se desordenarán automáticamente).";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", (e) => {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    const key = e.key.toUpperCase();
+    if (["A", "1"].includes(key)) selectOption(0);
+    else if (["B", "2"].includes(key)) selectOption(1);
+    else if (["C", "3"].includes(key)) selectOption(2);
+    else if (["D", "4"].includes(key)) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  initQuiz();
+</script>
+
+</body>
+</html>
