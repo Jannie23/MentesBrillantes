@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Física General - ECOEMS</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #311042 70%, #0f172a 100%);
+      --card-bg: rgba(23, 23, 42, 0.85);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+
+      --neon-pink: #ff007f;
+      --pastel-pink: rgba(255, 0, 127, 0.15);
+      --neon-purple: #a855f7;
+      --pastel-purple: rgba(168, 85, 247, 0.15);
+      --neon-blue: #38bdf8;
+      --pastel-blue: rgba(56, 189, 248, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.18);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-purple);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(168, 85, 247, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-pink);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-blue);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.1) drop-shadow(0 0 10px rgba(168, 85, 247, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-blue);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.7);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(168, 85, 247, 0.3);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-pink);
+      background-color: var(--pastel-pink);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(255, 0, 127, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-blue);
+      background-color: var(--pastel-blue);
+      color: var(--neon-blue);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #ffffff;
+      border: 2px solid var(--neon-blue);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-blue);
+      border-color: #ffffff;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #ffffff;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(255, 0, 127, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.2);
+    }
+    .btn-check:disabled {
+      background: #334155;
+      color: #64748b;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+      color: #ffffff;
+      display: none;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.2);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-blue);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #ffffff;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.2);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Tema</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const rawQuestions = [
+    {
+      topic: "Modelo Cinemático de Partículas",
+      question: "Desde la perspectiva del modelo cinemático de partículas, ¿cuál es la causa fundamental de la presión que ejerce un gas contenido dentro de un recipiente cerrado?",
+      options: [
+        "Las repulsiones magnéticas constantes entre los núcleos de las partículas del gas.",
+        "Los choques continuos y elásticos de las moléculas en movimiento contra las paredes del recipiente.",
+        "La fuerza de atracción gravitatoria que ejercen las paredes sobre las moléculas.",
+        "El aumento paulatino del volumen individual de cada una de las moléculas del gas."
+      ],
+      answer: 1,
+      explanation: "De acuerdo con la Teoría Cinético-Molecular, la presión de un gas es el resultado macroscópico del promedio de las colisiones e impulsos ejercidos por las partículas al chocar continuamente contra las paredes del contenedor."
+    },
+    {
+      topic: "Cinética y Temperatura",
+      question: "Si se incrementa la temperatura de una muestra de gas ideal contenida en un recipiente rígido, ¿qué cambio ocurre a nivel microscópico?",
+      options: [
+        "Aumenta la energía cinética promedio de las partículas del gas.",
+        "Se incrementa la masa total de las partículas del gas.",
+        "Disminuye el número de colisiones contra las paredes del recipiente.",
+        "Las partículas se detienen por completo debido al aumento térmico."
+      ],
+      answer: 0,
+      explanation: "La temperatura es una medida directa de la energía cinética promedio de las partículas de un sistema (E_k ∝ T). Al calentarlo, las partículas se mueven a mayor velocidad promedio."
+    },
+    {
+      topic: "Estados de la Materia",
+      question: "¿Qué estado de la materia se caracteriza microscópicamente por tener partículas con gran energía cinética, fuerzas intermoleculares despreciables y capacidad de ocupar todo el volumen disponible?",
+      options: [
+        "Sólido",
+        "Líquido",
+        "Gaseoso",
+        "Cristalino"
+      ],
+      answer: 2,
+      explanation: "En el estado gaseoso las fuerzas de cohesión son sumamente débiles en comparación con la elevada energía cinética de las partículas, lo que les permite difundirse y ocupar la totalidad del volumen."
+    },
+    {
+      topic: "Leyes de los Gases (Ley de Boyle)",
+      question: "Si se reduce a la mitad el volumen de un gas a temperatura constante (proceso isotérmico), ¿qué sucede con su presión según la Ley de Boyle?",
+      options: [
+        "Disminuye a la mitad.",
+        "Permanece exactamente constante.",
+        "Se duplica.",
+        "Se cuadruplica."
+      ],
+      answer: 2,
+      explanation: "La Ley de Boyle establece una relación inversamente proporcional entre la presión y el volumen (P₁V₁ = P₂V₂). Si el volumen se reduce a la mitad (V/2), la frecuencia de choques se duplica, duplicando la presión (2P)."
+    },
+    {
+      topic: "Procesos Termodinámicos (Isocórico)",
+      question: "Un proceso termodinámico que se lleva a cabo manteniendo constante el volumen del sistema se denomina:",
+      options: [
+        "Isotérmico",
+        "Isobárico",
+        "Isocórico (o Isovolumétrico)",
+        "Adiabático"
+      ],
+      answer: 2,
+      explanation: "Un proceso isocórico (o isovolumétrico) ocurre a volumen constante (ΔV = 0), por lo que el sistema no realiza trabajo de expansión sobre su entorno (W = 0)."
+    },
+    {
+      topic: "Transferencia de Calor",
+      question: "¿Cuál mecanismo de transferencia de calor requiere indispensablemente del movimiento de masa o fluido (líquido o gas) debido a diferencias de densidad?",
+      options: [
+        "Conducción",
+        "Convección",
+        "Radiación",
+        "Efecto Joule"
+      ],
+      answer: 1,
+      explanation: "La convección se produce en fluidos mediante corrientes de densidad: la materia caliente es menos densa y asciende, mientras que la fría desciende, transportando calor con masa."
+    },
+    {
+      topic: "Ley Cero de la Termodinámica",
+      question: "Si un sistema A se encuentra en equilibrio térmico con un sistema B, y el sistema B está a su vez en equilibrio térmico con un sistema C, ¿qué concluye la Ley Cero de la Termodinámica?",
+      options: [
+        "El sistema A fluye espontáneamente hacia el sistema C.",
+        "Los sistemas A y C están también en equilibrio térmico entre sí y poseen la misma temperatura.",
+        "La energía interna total del sistema tripartito es cero.",
+        "El sistema B absorbe todo el calor de A y C."
+      ],
+      answer: 1,
+      explanation: "La Ley Cero postula que la relación de equilibrio térmico es transitiva. Si T_A = T_B y T_B = T_C, concluye que T_A = T_C."
+    },
+    {
+      topic: "Primera Ley de la Termodinámica",
+      question: "La Primera Ley de la Termodinámica (ΔU = Q − W) es la aplicación directa a los sistemas térmicos del principio de:",
+      options: [
+        "Conservación de la cantidad de movimiento.",
+        "Conservación de la masa de Lavoisier.",
+        "Conservación de la energía.",
+        "Entropía creciente de Boltzmann."
+      ],
+      answer: 2,
+      explanation: "La Primera Ley establece formalmente la conservación de la energía en procesos térmicos: el cambio de energía interna equivale al calor neto añadido menos el trabajo realizado."
+    },
+    {
+      topic: "Segunda Ley de la Termodinámica",
+      question: "Según la Segunda Ley de la Termodinámica, en cualquier proceso natural e irreversible la entropía total del universo:",
+      options: [
+        "Permanece constante e igual a cero.",
+        "Siempre disminuye hasta anularse.",
+        "Tiende a aumentar de forma continua.",
+        "Oscila cíclicamente sin tendencia fija."
+      ],
+      answer: 2,
+      explanation: "La Segunda Ley establece que la entropía (grado de desorden microscópico) de un sistema aislado o del universo en su totalidad siempre aumenta en procesos reales o espontáneos."
+    },
+    {
+      topic: "Máquinas Térmicas",
+      question: "¿Por qué es imposible construir una máquina térmica que convierta el 100% del calor absorbido en trabajo mecánico útil?",
+      options: [
+        "Por fallas técnicas inevitables de fricción mecánica.",
+        "Porque violaría el enunciado de Kelvin-Planck de la Segunda Ley de la Termodinámica.",
+        "Porque rompería la conservación de la masa en la combustión.",
+        "Porque el calor solo puede transmitirse a través de materiales sólidos."
+      ],
+      answer: 1,
+      explanation: "El enunciado de Kelvin-Planck establece que ninguna máquina térmica que opere en ciclo puede transformar íntegramente todo el calor absorbido de una fuente en trabajo; siempre debe ceder una parte a un sumidero frío."
+    },
+    {
+      topic: "Principios de Hidrostática (Principio de Pascal)",
+      question: "El funcionamiento de una prensa hidráulica, mediante el cual una pequeña fuerza en un émbolo menor produce una gran fuerza en el émbolo mayor, se fundamenta en:",
+      options: [
+        "El Principio de Arquímedes",
+        "El Principio de Pascal",
+        "El Teorema de Torricelli",
+        "El Principio de Bernoulli"
+      ],
+      answer: 1,
+      explanation: "El Principio de Pascal establece que la presión aplicada a un fluido incompresible y encerrado se transmite íntegramente y con la misma intensidad en todas direcciones (P₁ = P₂ ⇒ F₁/A₁ = F₂/A₂)."
+    },
+    {
+      topic: "Ecuación de Prensa Hidráulica",
+      question: "En una prensa hidráulica, el émbolo menor tiene un área de 0.02 m² y el mayor de 0.20 m². Si se aplica una fuerza de 100 N en el émbolo menor, ¿cuál es la fuerza resultante en el mayor?",
+      options: [
+        "10 N",
+        "100 N",
+        "1,000 N",
+        "2,000 N"
+      ],
+      answer: 2,
+      explanation: "Aplicando Pascal: F₂ = F₁ · (A₂ / A₁) = 100 N × (0.20 m² / 0.02 m²) = 100 N × 10 = 1,000 N."
+    },
+    {
+      topic: "Principio de Arquímedes (Empuje)",
+      question: "El Principio de Arquímedes establece que todo cuerpo sumergido total o parcialmente en un fluido experimenta una fuerza de empuje hacia arriba igual a:",
+      options: [
+        "El peso total del objeto sumergido.",
+        "El peso del volumen de fluido desalojado por el cuerpo.",
+        "La densidad del objeto multiplicada por la profundidad.",
+        "La presión ejercida en el fondo del recipiente."
+      ],
+      answer: 1,
+      explanation: "El empuje hidrostático (E = ρ_fluido · g · V_sumergido) es numéricamente igual al peso del volumen del fluido desplazado por la parte sumergida del objeto."
+    },
+    {
+      topic: "Equilibrio Térmico y Calorimetría",
+      question: "En un recipiente ideal aislado donde se mezclan 1 kg de agua a 80 °C con 1 kg de agua a 20 °C, ¿cuál será la temperatura final de equilibrio?",
+      options: [
+        "30 °C",
+        "50 °C",
+        "60 °C",
+        "100 °C"
+      ],
+      answer: 1,
+      explanation: "Al tratarse de masas iguales (m₁=m₂) de la misma sustancia (c₁=c₂), la temperatura de equilibrio es el promedio aritmético exacto: T_eq = (80 + 20) / 2 = 50 °C."
+    },
+    {
+      topic: "Flujo de Calor Espontáneo",
+      question: "Cuando dos cuerpos a distintas temperaturas entran en contacto térmico dentro de un sistema aislado, la transferencia de energía en forma de calor ocurre espontáneamente de manera:",
+      options: [
+        "Del cuerpo de menor masa al de mayor masa.",
+        "Del cuerpo de mayor temperatura al de menor temperatura.",
+        "Del cuerpo de menor temperatura al de mayor temperatura.",
+        "De forma bidireccional e idéntica en ambos sentidos."
+      ],
+      answer: 1,
+      explanation: "Por definición y según la Segunda Ley, el calor fluye de manera espontánea únicamente desde el cuerpo con mayor temperatura hacia el de menor temperatura hasta alcanzar el equilibrio."
+    },
+    {
+      topic: "Efecto de la Presión en la Temperatura de Ebullición",
+      question: "¿Por qué el agua hierve a una temperatura MENOR a 100 °C en una ciudad de alta altitud (como la CDMX) en comparación con el nivel del mar?",
+      options: [
+        "Porque la aceleración de la gravedad es mayor en las montañas.",
+        "Porque la presión atmosférica es menor en altitudes elevadas.",
+        "Porque el agua contiene más minerales disueltos en las montañas.",
+        "Porque el aire frío acelera la evaporación del agua."
+      ],
+      answer: 1,
+      explanation: "La ebullición ocurre cuando la presión de vapor del líquido iguala la presión atmosférica externa. En altitudes elevadas la presión atmosférica es menor, requiriendo menor temperatura para ebullir."
+    },
+    {
+      topic: "Presión Hidrostática",
+      question: "Un buzo se sumerge en agua de mar (ρ ≈ 1000 kg/m³). ¿Cómo varía la presión hidrostática (P = ρgh) que soporta conforme se desplaza hacia mayor profundidad?",
+      options: [
+        "Aumenta de forma directamente proporcional a la profundidad.",
+        "Disminuye exponencialmente.",
+        "Se mantiene exactamente constante.",
+        "Aumenta únicamente si varía la temperatura."
+      ],
+      answer: 0,
+      explanation: "La presión hidrostática depende directamente de la profundidad h (P = ρ·g·h). A mayor profundidad, hay una mayor columna de fluido encima, aumentando la presión linealmente."
+    },
+    {
+      topic: "Diferencia entre Calor y Temperatura",
+      question: "¿Cuál de las siguientes afirmaciones distingue correctamente entre los conceptos de calor y temperatura?",
+      options: [
+        "El calor es una propiedad intrínseca medida en grados Celsius y la temperatura es energía en tránsito.",
+        "La temperatura mide la energía cinética promedio de las partículas, mientras que el calor es la energía térmica transferida entre cuerpos debido a una diferencia de temperatura.",
+        "El calor y la temperatura son exactamente el mismo concepto con distintas unidades de medida.",
+        "Un cuerpo frío no posee temperatura pero sí acumula calor."
+      ],
+      answer: 1,
+      explanation: "La temperatura es la medida escalar del estado térmico (energía cinética promedio), mientras que el calor es la energía térmica en movimiento o tránsito entre sistemas con diferente temperatura."
+    },
+    {
+      topic: "Conservación de la Energía Mecánica",
+      question: "Un objeto de 2 kg se deja caer libremente desde el reposo desde una altura de 10 m. Si se desprecia la fricción con el aire (g = 10 m/s²), ¿cuál será su energía cinética justo antes de impactar contra el suelo?",
+      options: [
+        "20 J",
+        "100 J",
+        "200 J",
+        "400 J"
+      ],
+      answer: 2,
+      explanation: "Por conservación de energía mecánica, E_k final = E_p inicial. E_p = m·g·h = 2 kg × 10 m/s² × 10 m = 200 Joules."
+    },
+    {
+      topic: "Fluidos e Incompresibilidad",
+      question: "¿Qué propiedad de los líquidos permite utilizarlos como fluidos de trabajo en los sistemas hidráulicos frente a los gases?",
+      options: [
+        "Su alta compresibilidad y expansión rápida.",
+        "Su incompresibilidad casi práctica y volumen definido.",
+        "Su baja densidad en comparación con los gases.",
+        "Su capacidad de evaporación instantánea bajo presión."
+      ],
+      answer: 1,
+      explanation: "Los líquidos son prácticamente incompresibles (mantienen un volumen constante bajo presión), lo que permite transmitir íntegramente las presiones y fuerzas en sistemas hidráulicos."
+    }
+  ];
+
+  let questions = [];
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const resultTitle = document.getElementById("resultTitle");
+  const restartBtn = document.getElementById("restartBtn");
+
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function initQuiz() {
+    questions = shuffleArray(rawQuestions);
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🎉 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 ¡Casi! Justificación física:";
+      feedbackText.innerHTML = `<strong>Fundamento teórico:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "⚡ ¡Maestría en Física General!";
+      msg = "¡Impresionante! Resolviste a la perfección los 20 reactivos. Dominas la termodinámica, hidrostática y las leyes cinéticas.";
+    } else if (score >= 15) {
+      resultTitle.textContent = "🌟 ¡Gran Desempeño!";
+      msg = "Demuestras un dominio muy sólido en ciencias físicas. Revisa los detalles conceptuales fallados para afianzar el 100%.";
+    } else if (score >= 10) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por muy buen camino. Te sugerimos repasar los principios de Pascal, Arquímedes y las leyes termodinámicas.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Practicando!";
+      msg = "¡No te rindas! Refuerza los conceptos de energía cinética, presión e hidrostática e inténtalo de nuevo (las preguntas se desordenarán automáticamente).";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", (e) => {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    const key = e.key.toUpperCase();
+    if (["A", "1"].includes(key)) selectOption(0);
+    else if (["B", "2"].includes(key)) selectOption(1);
+    else if (["C", "3"].includes(key)) selectOption(2);
+    else if (["D", "4"].includes(key)) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  initQuiz();
+</script>
+
+</body>
+</html>
