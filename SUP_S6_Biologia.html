@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Biología Celular: Metabolismo y Fermentación</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #064e3b 0%, #022c22 35%, #0f3f2e 70%, #022c22 100%);
+      --card-bg: rgba(6, 44, 32, 0.88);
+      --text-main: #f0fdf4;
+      --text-muted: #86efac;
+
+      --neon-lime: #84cc16;
+      --pastel-lime: rgba(132, 204, 22, 0.15);
+      --neon-emerald: #10b981;
+      --pastel-emerald: rgba(16, 185, 129, 0.15);
+      --neon-cyan: #06b6d4;
+      --pastel-cyan: rgba(6, 182, 212, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #f43f5e;
+      --pastel-red: rgba(244, 63, 94, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-emerald);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(16, 185, 129, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(2, 44, 34, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(132, 204, 22, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #a7f3d0;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(6, 78, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #022c22;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(6, 78, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(16, 185, 129, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(132, 204, 22, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #a3e635;
+      box-shadow: 0 0 20px rgba(132, 204, 22, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-lime));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #022c22;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #022c22;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #022c22;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(244, 63, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #022c22;
+      box-shadow: 0 6px 20px rgba(132, 204, 22, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e3a2b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #022c22;
+      display: none;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(132, 204, 22, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #022c22;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(132, 204, 22, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 15</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Metabolismo Celular</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 15</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  const rawQuestions = [
+    {
+      topic: "Características de la Glucólisis",
+      question: "Una célula degrada glucosa y obtiene una pequeña cantidad de ATP antes de requerir rutas metabólicas posteriores. ¿Qué característica corresponde a la glucólisis?",
+      options: [
+        "Requiere oxígeno molecular y ocurre en la matriz mitocondrial.",
+        "Convierte la glucosa en piruvato en el citoplasma sin requerir oxígeno, con ganancia limitada de ATP.",
+        "Produce 36 ATP netos directamente en el citosol.",
+        "Genera lactato directamente a partir de la glucosa en un solo paso."
+      ],
+      answer: 1,
+      explanation: "Ocurre anaeróbicamente en el citosol, rompiendo la glucosa en 2 moléculas de piruvato con una producción pequeña de ATP."
+    },
+    {
+      topic: "Respiración vs Fermentación",
+      question: "Dos cultivos de levadura reciben la misma cantidad de glucosa. El cultivo X está en condiciones aerobias y el cultivo Y depende de fermentación. ¿Cuál resultado es correcto?",
+      options: [
+        "Y obtiene más ATP que X.",
+        "X obtiene mayor cantidad de ATP por glucosa al aprovechar más su energía química.",
+        "Ambos cultivos generan exactamente 2 ATP por molécula de glucosa.",
+        "Y produce dióxido de carbono y agua como productos finales."
+      ],
+      answer: 1,
+      explanation: "La oxidación completa en presencia de O₂ extrae mucho más ATP (~36-38) que la fermentación (2 ATP netos)."
+    },
+    {
+      topic: "Inhibición Metabólica",
+      question: "Una sustancia inhibe específicamente la glucólisis en una célula que consume glucosa. ¿Cuál es la consecuencia más inmediata?",
+      options: [
+        "Aumenta la síntesis de piruvato.",
+        "Disminuye la formación de piruvato y se afecta la obtención inicial de ATP.",
+        "Se acelera inmediatamente el ciclo de Krebs.",
+        "La célula produce un exceso de alcohol etílico."
+      ],
+      answer: 1,
+      explanation: "Al bloquear la glucólisis se detiene la conversión de glucosa a piruvato y se reduce drásticamente el ATP citoplásmico inicial."
+    },
+    {
+      topic: "Eficiencia Energética",
+      question: "Un estudiante afirma que la fermentación aprovecha la glucosa con la misma eficiencia energética que la respiración aerobia. ¿Es correcta esta conclusión?",
+      options: [
+        "Sí, porque ambas rutas producen ATP a partir de glucosa.",
+        "No, porque la fermentación deja la mayor parte de la energía retenida en productos como lactato o etanol.",
+        "Sí, porque la fermentación genera 38 ATP en el citoplasma.",
+        "No, porque la fermentación consume más ATP del que produce en total."
+      ],
+      answer: 1,
+      explanation: "La fermentación es ineficiente debido a que retiene la mayoría de la energía potencial en los enlaces de productos no oxidados del todo (etanol o lactato)."
+    },
+    {
+      topic: "Fermentación Láctica Muscular",
+      question: "Durante ejercicio intenso, las células musculares producen lactato cuando la demanda de oxígeno supera el suministro. ¿Qué función metabólica permite esta vía?",
+      options: [
+        "Sintetizar glucosa directamente a partir de ATP.",
+        "Regenerar NAD+ para que la glucólisis continúe produciendo ATP.",
+        "Introducir piruvato a la cadena de transporte de electrones sin oxígeno.",
+        "Eliminar completamente el dióxido de carbono de la célula."
+      ],
+      answer: 1,
+      explanation: "Reoxida el NADH citoplásmico a NAD+ para garantizar que la glucólisis siga funcionando y aportando energía."
+    },
+    {
+      topic: "Balance Neto de Glucólisis",
+      question: "¿Cuál es el balance neto de productos generados exclusivamente durante la fase de glucólisis a partir de 1 molécula de glucosa?",
+      options: [
+        "2 Piruvatos, 2 ATP netos y 2 NADH",
+        "2 Lactatos y 4 ATP netos",
+        "1 Piruvato, 1 ATP y 1 NADH",
+        "2 Etanoles, 2 CO₂ y 36 ATP"
+      ],
+      answer: 0,
+      explanation: "Produce netamente 2 piruvatos, 2 NADH y 2 ATP (4 ATP sintetizados menos 2 ATP invertidos al inicio)."
+    },
+    {
+      topic: "Localización Celular",
+      question: "¿En qué lugar de la célula eucariota se lleva a cabo la glucólisis?",
+      options: [
+        "Matriz mitocondrial",
+        "Crestas mitocondriales",
+        "Citoplasma (citosol)",
+        "Luces del retículo endoplásmico"
+      ],
+      answer: 2,
+      explanation: "Las enzimas glucolíticas se encuentran solubles dentro del citoplasma o citosol."
+    },
+    {
+      topic: "Fermentación Alcohólica",
+      question: "Los productos finales de la fermentación alcohólica llevada a cabo por levaduras son:",
+      options: [
+        "Lactato y NAD+",
+        "Etanol y CO₂",
+        "Ácido pirúvico y H₂O",
+        "Acetil-CoA y O₂"
+      ],
+      answer: 1,
+      explanation: "Ocurre en levaduras produciendo etanol y liberando CO₂ mediante la descarboxilación del piruvato."
+    },
+    {
+      topic: "Vías Catabólicas",
+      question: "¿Cuál de los siguientes términos describe una ruta metabólica de degradación de moléculas complejas a simples con liberación de energía exergónica?",
+      options: [
+        "Anabolismo",
+        "Catabolismo",
+        "Homeostasis",
+        "Ósmosis"
+      ],
+      answer: 1,
+      explanation: "El catabolismo engloba el conjunto de reacciones metabólicas de degradación molecular que liberan energía utilizable."
+    },
+    {
+      topic: "Fase de Inversión Energética",
+      question: "Durante la fase de inversión de energía de la glucólisis, la célula consume directamente:",
+      options: [
+        "2 ATP",
+        "4 ATP",
+        "2 NADH",
+        "2 GTP"
+      ],
+      answer: 0,
+      explanation: "La fase de inversión gasta 2 ATP para fosforilar la glucosa y sus intermediarios al inicio de la vía."
+    },
+    {
+      topic: "Rendimiento Mitocondrial",
+      question: "¿Por qué la respiración aerobia completa produce un rendimiento de ATP (36-38 ATP) mucho mayor que la fermentación (2 ATP)?",
+      options: [
+        "Porque la glucólisis ocurre más rápido en presencia de oxígeno.",
+        "Porque la glucosa se oxida completamente a CO₂ y H₂O en la mitocondria.",
+        "Porque la fermentación destruye moléculas de ATP producidas.",
+        "Porque las levaduras consumen el ATP antes de liberarlo."
+      ],
+      answer: 1,
+      explanation: "La respiración aerobia procesa completamente el piruvato mediante el ciclo de Krebs y la fosforilación oxidativa mitocondrial."
+    },
+    {
+      topic: "Cadena de Transporte de Electrones",
+      question: "El aceptor final de electrones en la respiración celular aerobia es el:",
+      options: [
+        "Piruvato",
+        "Óxigeno molecular (O₂)",
+        "NAD+",
+        "Lactato"
+      ],
+      answer: 1,
+      explanation: "En la cadena de transporte mitocondrial, el O₂ actúa como aceptor final de electrones para formar agua."
+    },
+    {
+      topic: "Destino del NADH en Fermentación",
+      question: "¿Qué le sucede al NADH producido en la glucólisis durante la fermentación láctica?",
+      options: [
+        "Se oxida a NAD+ cediendo electrones al piruvato.",
+        "Ingresa a la mitocondria para generar 3 ATP.",
+        "Se convierte en glucosa.",
+        "Se fosforila para formar ATP."
+      ],
+      answer: 0,
+      explanation: "El NADH cede sus electrones al piruvato, transformándolo en lactato y regenerando el NAD+."
+    },
+    {
+      topic: "Producción Bruta de ATP",
+      question: "¿Cuál es la ganancia BRUTA de ATP en la glucólisis antes de restar la inversión inicial?",
+      options: [
+        "2 ATP",
+        "4 ATP",
+        "36 ATP",
+        "0 ATP"
+      ],
+      answer: 1,
+      explanation: "Se sintetizan 4 ATP en total durante la fase de cosecha; al restar los 2 ATP invertidos inicialmente, la ganancia neta es de 2 ATP."
+    },
+    {
+      topic: "Metabolismo Anaerobio Estricto",
+      question: "Un organismo anaerobio estricto no puede sobrevivir en presencia de O₂. Para obtener su energía depende exclusivamente de:",
+      options: [
+        "Ciclo de Krebs",
+        "Glucólisis seguida de fermentación",
+        "Fosforilación oxidativa mitocondrial",
+        "Fotofosforilación acíclica"
+      ],
+      answer: 1,
+      explanation: "Sin oxígeno disponible, dependen de la glucólisis acoplada a la fermentación para regenerar NAD+ y sintetizar ATP."
+    }
+  ];
+
+  let questions = [];
+  let currentQuestionIndex = 0;
+  let selectedOptionIndex = null;
+  let score = 0;
+
+  const prefixes = ["A", "B", "C", "D"];
+
+  const questionCounter = document.getElementById("questionCounter");
+  const scoreCounter = document.getElementById("scoreCounter");
+  const progressBar = document.getElementById("progressBar");
+  const topicBadge = document.getElementById("topicBadge");
+  const questionText = document.getElementById("questionText");
+  const optionsContainer = document.getElementById("optionsContainer");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackText = document.getElementById("feedbackText");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const quizBody = document.getElementById("quizBody");
+  const progressHeader = document.getElementById("progressHeader");
+  const resultScreen = document.getElementById("resultScreen");
+  const finalScore = document.getElementById("finalScore");
+  const finalMessage = document.getElementById("finalMessage");
+  const resultTitle = document.getElementById("resultTitle");
+  const restartBtn = document.getElementById("restartBtn");
+
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function initQuiz() {
+    questions = shuffleArray(rawQuestions);
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    const q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+    scoreCounter.textContent = `Aciertos: ${score}`;
+    progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> <span>${optText}</span>`;
+      btn.addEventListener("click", () => selectOption(index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach((btn, idx) => {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    const q = questions[currentQuestionIndex];
+    const allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(btn => btn.disabled = true);
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    const isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = `Aciertos: ${score}`;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🧫 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 ¡Casi! Explicación bioquímica:";
+      feedbackText.innerHTML = `<strong>Fundamento teórico:</strong> ${q.explanation}`;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = `${score} / ${questions.length}`;
+
+    let msg = "";
+    if (score === 15) {
+      resultTitle.textContent = "🧬 ¡Dominio Perfecto en Biología Celular!";
+      msg = "¡Súper bien! Resolviste correctamente los 15 reactivos. Dominas las rutas metabólicas, balances energéticos de la glucólisis y tipos de fermentación.";
+    } else if (score >= 12) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel muy avanzado de preparación. Revisa los detalles conceptuales en las preguntas que fallaste para lograr la perfección.";
+    } else if (score >= 8) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos repasar la ganancia bruta vs neta de ATP y los aceptores finales de electrones.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡No te desanimes! Refuerza las diferencias entre vías aerobias y anaerobias para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", (e) => {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    const key = e.key.toUpperCase();
+    if (["A", "1"].includes(key)) selectOption(0);
+    else if (["B", "2"].includes(key)) selectOption(1);
+    else if (["C", "3"].includes(key)) selectOption(2);
+    else if (["D", "4"].includes(key)) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  initQuiz();
+</script>
+
+</body>
+</html>
