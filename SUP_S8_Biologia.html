@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Biología: Metabolismo y Ciclo Celular</title>
+  <style>
+    :root {
+      --bg: #022c22;
+      --card: rgba(6, 44, 32, 0.95);
+      --accent: #10b981;
+      --accent-lime: #84cc16;
+      --text: #f0fdf4;
+      --green: #22c55e;
+      --red: #f43f5e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
+    body {
+      background: linear-gradient(135deg, #064e3b, #022c22);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+    }
+
+    .container {
+      background: var(--card);
+      width: 100%;
+      max-width: 900px;
+      border-radius: 20px;
+      border: 2px solid var(--accent);
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--accent);
+      padding-bottom: 10px;
+      color: var(--accent-lime);
+      font-weight: bold;
+    }
+
+    .topic {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent), var(--accent-lime));
+      color: #022c22;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .question { font-size: 1.2rem; margin-bottom: 20px; line-height: 1.4; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+
+    .btn-opt {
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(16, 185, 129, 0.3);
+      color: var(--text);
+      padding: 12px 15px;
+      border-radius: 10px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .btn-opt:hover { border-color: var(--accent-lime); background: rgba(132, 204, 22, 0.1); }
+    .btn-opt.selected { border-color: var(--accent-lime); background: rgba(132, 204, 22, 0.25); }
+    .btn-opt.correct { border-color: var(--green) !important; background: rgba(34, 197, 94, 0.2) !important; color: #86efac; }
+    .btn-opt.incorrect { border-color: var(--red) !important; background: rgba(244, 63, 94, 0.2) !important; color: #fca5a5; }
+
+    .feedback {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 0.95rem;
+    }
+
+    .feedback.ok { background: rgba(34, 197, 94, 0.15); border: 1px solid var(--green); color: #dcfce7; }
+    .feedback.err { background: rgba(244, 63, 94, 0.15); border: 1px solid var(--red); color: #ffe4e6; }
+
+    .footer { display: flex; justify-content: flex-end; }
+
+    .action-btn {
+      background: linear-gradient(135deg, var(--accent-lime), var(--accent));
+      color: #022c22;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="header">
+    <span id="info">Pregunta 1 de 20</span>
+    <span id="score">Aciertos: 0</span>
+  </div>
+
+  <div id="quiz-screen">
+    <span class="topic" id="topic-tag">Tema</span>
+    <div class="question" id="q-text"></div>
+    <div class="grid" id="opts"></div>
+    <div class="feedback" id="fb"></div>
+    <div class="footer">
+      <button class="action-btn" id="btn-action" onclick="handleAction()" disabled>Comprobar</button>
+    </div>
+  </div>
+
+  <div id="result-screen" style="display:none; text-align:center;">
+    <h2 style="color:var(--accent-lime); margin-bottom:15px;">¡Evaluación Finalizada!</h2>
+    <h1 id="final-score" style="font-size:3rem; margin-bottom:20px;">0 / 20</h1>
+    <button class="action-btn" onclick="location.reload()">↻ Reiniciar</button>
+  </div>
+</div>
+
+<script>
+  var data = [
+    { t: "Enzimas de Krebs", q: "1. Si se destruye la enzima citrato sintasa en la matriz mitocondrial, ¿qué efecto ocurre de inmediato?", o: ["Se detiene la glucólisis.", "No se sintetiza citrato.", "Flujo masivo en Complejo IV.", "Se duplica FADH2."], a: 1, exp: "La citrato sintasa cataliza la condensación del acetil-CoA con oxaloacetato para formar citrato. Su ausencia detiene la ruta." },
+    { t: "Ciclo de Krebs", q: "2. Por cada grupo acetilo en el Ciclo de Krebs, ¿cuántas moléculas de CO2 se liberan?", o: ["1 molécula.", "2 moléculas.", "4 moléculas.", "6 moléculas."], a: 1, exp: "Cada grupo acetilo de 2 carbonos se oxida completamente liberando 2 moléculas de CO2." },
+    { t: "Intermediarios", q: "3. ¿Por qué la falta de oxaloacetato interrumpe el ciclo de Krebs?", o: ["Es el aceptor de e-.", "Acetil-CoA no tiene molécula aceptora.", "Sintetiza ATP.", "Transporta piruvato."], a: 1, exp: "El oxaloacetato es la molécula aceptora necesaria para unirse al acetil-CoA e iniciar el ciclo." },
+    { t: "Estequiometría", q: "4. Para procesar 1 glucosa completa, ¿cuántas vueltas realiza el ciclo de Krebs?", o: ["1 vuelta.", "2 vueltas.", "3 vueltas.", "4 vueltas."], a: 1, exp: "1 glucosa produce 2 piruvatos y 2 acetil-CoA, lo que equivale a 2 vueltas del ciclo." },
+    { t: "Acarreadores", q: "5. ¿Cuál es el destino principal de NADH y FADH2 producidos en Krebs?", o: ["Formar ARN.", "Donar e- a la cadena respiratoria.", "Formar glucosa.", "Formar organelos."], a: 1, exp: "Donan sus electrones a la cadena de transporte de electrones para la síntesis de ATP por quimiósmosis." },
+    { t: "ATP Sintasa", q: "6. Si se bloquea el flujo de H+ en la ATP sintasa mitocondrial, ¿qué consecuencia sufre la célula?", o: ["Se detiene la glucólisis.", "Se interrumpe la síntesis de ATP oxidativo.", "Aumenta piruvato.", "Duplica ADN."], a: 1, exp: "La ATP sintasa requiere el flujo a favor del gradiente de H+ para fosforilar el ADP a ATP." },
+    { t: "Aceptor Final", q: "7. ¿Cuál es el papel del O2 al final de la cadena respiratoria?", o: ["Donar e- a Complejo I.", "Aceptor final de e- reduciéndose a agua.", "Romper la glucosa.", "Formar huso mitótico."], a: 1, exp: "El O2 recibe los electrones al final de la cadena y se combina con H+ para formar H2O." },
+    { t: "Inhibidores", q: "8. Si el cianuro inhibe al Complejo IV, ¿por qué se detiene el bombeo de protones?", o: ["Los e- quedan atascados sin transferirse al O2.", "Consume ATP.", "Destruye ribosomas.", "Invierte el gradiente."], a: 0, exp: "Al no poder ceder electrones al oxígeno, toda la cadena transportadora queda bloqueada." },
+    { t: "Quimiósmosis", q: "9. ¿Hacia qué espacio se bombean los protones H+ en la quimiósmosis mitocondrial?", o: ["Matriz mitocondrial.", "Espacio intermembrana.", "Retículo endoplásmico.", "Exterior celular."], a: 1, exp: "Los protones se acumulan en el espacio intermembrana para generar el gradiente electroquímico." },
+    { t: "FADH2 vs NADH", q: "10. ¿Por qué la oxidación de FADH2 rinde menos ATP que NADH?", o: ["No tiene e-.", "Entra en Complejo II omitiendo el bombeo del Complejo I.", "Es anaerobio.", "Se destruye."], a: 1, exp: "FADH2 entrega sus electrones en el Complejo II, saltándose el primer bombeo de protones." },
+    { t: "Fermentación", q: "11. Si un cultivo bacteriano pasa a ambiente anaerobio, ¿qué cambio debe hacer?", o: ["Consumir proteínas.", "Incrementar consumo de glucosa por fermentación.", "Producir 36 ATP.", "Sintetizar O2."], a: 1, exp: "Como la fermentación solo produce 2 ATP por glucosa, la célula debe consumir más glucosa para obtener energía." },
+    { t: "Rendimiento", q: "12. ¿Cuál es el rendimiento neto de ATP por glucosa en la fermentación láctica?", o: ["2 ATP", "8 ATP", "30 ATP", "38 ATP"], a: 0, exp: "La fermentación solo obtiene los 2 ATP netos producidos durante la glucólisis." },
+    { t: "Eficiencia", q: "13. ¿Por qué la respiración aerobia es más eficiente que la fermentación?", o: ["Fermentación consume ATP.", "Oxida completamente la glucosa a CO2 y H2O.", "Ocurre en el núcleo.", "Sin enzimas."], a: 1, exp: "La oxidación completa rompe todos los enlaces químicos liberando la máxima energía posible." },
+    { t: "Subproductos", q: "14. ¿Qué producto de desecho con energía acumulada libera la célula en fermentación alcohólica?", o: ["CO2 y agua.", "Oxígeno.", "Etanol.", "Ácido pirúvico."], a: 2, exp: "El etanol retiene la mayor parte de la energía química de la glucosa original." },
+    { t: "Músculo en Ejercicio", q: "15. En ejercicio extenuante sin suficiente O2, el músculo recurre a la fermentación para:", o: ["Crear O2.", "Regenerar NAD+ para mantener la glucólisis.", "Sintetizar tubulina.", "Elevar pH."], a: 1, exp: "La fermentación reconvierte el NADH en NAD+ para que la glucólisis no se detenga." },
+    { t: "Fase S", q: "16. Si una célula tumoral incorpora timina radiactiva para duplicar ADN, ¿en qué fase está?", o: ["Fase G1", "Fase S", "Fase G2", "Profase"], a: 1, exp: "La síntesis y duplicación del ADN ocurre exclusivamente durante la Fase S." },
+    { t: "Citoesqueleto", q: "17. Si se bloquea la síntesis de tubulina en G2, ¿qué estructura no se ensamblará en Fase M?", o: ["Membrana nuclear.", "Pared celular.", "Huso mitótico.", "Cadena respiratoria."], a: 2, exp: "La tubulina es la proteína estructural que conforma los microtúbulos del huso mitótico." },
+    { t: "Interfase", q: "18. ¿Qué evento fundamental diferencia a la Fase S de G1 y G2 en la Interfase?", o: ["Citocinesis.", "Replicación del ADN.", "Condensación.", "Separación de cromátidas."], a: 1, exp: "G1 y G2 son de crecimiento/control, mientras que la Fase S es de replicación genómica." },
+    { t: "División Celular", q: "19. Si un fármaco impide la polimerización del huso mitótico, ¿qué proceso se bloquea?", o: ["Duplicación de ADN.", "Separación de cromátidas hermanas.", "Síntesis en G1.", "Descarboxilación."], a: 1, exp: "El huso mitótico se encarga de traccionar y separar las cromátidas durante la anafase." },
+    { t: "Cromátidas", q: "20. Una célula con 2n = 46 cromosomas culmina la fase S. En profase, ¿cuántas cromátidas posee?", o: ["23 cromátidas.", "46 cromátidas.", "92 cromátidas en 46 cromosomas dobles.", "184 cromátidas."], a: 2, exp: "Al duplicarse el ADN, cada uno de los 46 cromosomas pasa a tener 2 cromátidas hermanas (46 x 2 = 92)." }
+  ];
+
+  var idx = 0;
+  var score = 0;
+  var sel = null;
+  var step = 0;
+
+  function render() {
+    var item = data[idx];
+    document.getElementById("info").innerText = "Pregunta " + (idx + 1) + " de " + data.length;
+    document.getElementById("score").innerText = "Aciertos: " + score;
+    document.getElementById("topic-tag").innerText = item.t;
+    document.getElementById("q-text").innerText = item.q;
+    document.getElementById("fb").style.display = "none";
+    
+    var container = document.getElementById("opts");
+    container.innerHTML = "";
+    
+    item.o.forEach(function(opt, i) {
+      var b = document.createElement("button");
+      b.className = "btn-opt";
+      b.innerText = String.fromCharCode(65 + i) + ") " + opt;
+      b.onclick = function() {
+        if (step === 1) return;
+        sel = i;
+        var all = container.querySelectorAll(".btn-opt");
+        all.forEach(function(btn, k) { btn.classList.toggle("selected", k === i); });
+        document.getElementById("btn-action").disabled = false;
+      };
+      container.appendChild(b);
+    });
+
+    var btn = document.getElementById("btn-action");
+    btn.innerText = "Comprobar";
+    btn.disabled = true;
+    step = 0;
+  }
+
+  function handleAction() {
+    var item = data[idx];
+    var btn = document.getElementById("btn-action");
+    
+    if (step === 0) {
+      var all = document.querySelectorAll(".btn-opt");
+      var isCorrect = (sel === item.a);
+      
+      if (isCorrect) {
+        score++;
+        all[sel].classList.add("correct");
+      } else {
+        all[sel].classList.add("incorrect");
+        all[item.a].classList.add("correct");
+      }
+      
+      var fb = document.getElementById("fb");
+      fb.className = "feedback " + (isCorrect ? "ok" : "err");
+      fb.innerHTML = "<strong>" + (isCorrect ? "¡Correcto!" : "Incorrecto:") + "</strong> " + item.exp;
+      fb.style.display = "block";
+      
+      btn.innerText = "Siguiente ➔";
+      step = 1;
+    } else {
+      idx++;
+      if (idx < data.length) {
+        render();
+      } else {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score").innerText = score + " / " + data.length;
+      }
+    }
+  }
+
+  render();
+</script>
+
+</body>
+</html>

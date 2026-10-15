@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Química</title>
+  <style>
+    :root {
+      --bg: #1e1b4b;
+      --card: rgba(23, 23, 42, 0.95);
+      --accent: #c084fc;
+      --text: #f8fafc;
+      --green: #22c55e;
+      --red: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
+    body {
+      background: linear-gradient(135deg, #1e1b4b, #311042);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+    }
+
+    .container {
+      background: var(--card);
+      width: 100%;
+      max-width: 900px;
+      border-radius: 20px;
+      border: 2px solid var(--accent);
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--accent);
+      padding-bottom: 10px;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .topic {
+      display: inline-block;
+      background: var(--accent);
+      color: #0f172a;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .question { font-size: 1.2rem; margin-bottom: 20px; line-height: 1.4; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+
+    .btn-opt {
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(192, 132, 252, 0.3);
+      color: var(--text);
+      padding: 12px 15px;
+      border-radius: 10px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .btn-opt:hover { border-color: var(--accent); background: rgba(192, 132, 252, 0.1); }
+    .btn-opt.selected { border-color: var(--accent); background: rgba(192, 132, 252, 0.25); }
+    .btn-opt.correct { border-color: var(--green) !important; background: rgba(34, 197, 94, 0.2) !important; color: #86efac; }
+    .btn-opt.incorrect { border-color: var(--red) !important; background: rgba(239, 68, 68, 0.2) !important; color: #fca5a5; }
+
+    .feedback {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 0.95rem;
+    }
+
+    .feedback.ok { background: rgba(34, 197, 94, 0.15); border: 1px solid var(--green); color: #dcfce7; }
+    .feedback.err { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--red); color: #ffe4e6; }
+
+    .footer { display: flex; justify-content: flex-end; }
+
+    .action-btn {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="header">
+    <span id="info">Pregunta 1 de 20</span>
+    <span id="score">Aciertos: 0</span>
+  </div>
+
+  <div id="quiz-screen">
+    <span class="topic" id="topic-tag">Tema</span>
+    <div class="question" id="q-text"></div>
+    <div class="grid" id="opts"></div>
+    <div class="feedback" id="fb"></div>
+    <div class="footer">
+      <button class="action-btn" id="btn-action" onclick="handleAction()" disabled>Comprobar</button>
+    </div>
+  </div>
+
+  <div id="result-screen" style="display:none; text-align:center;">
+    <h2 style="color:var(--accent); margin-bottom:15px;">¡Evaluación Finalizada!</h2>
+    <h1 id="final-score" style="font-size:3rem; margin-bottom:20px;">0 / 20</h1>
+    <button class="action-btn" onclick="location.reload()">↻ Reiniciar</button>
+  </div>
+</div>
+
+<script>
+  var data = [
+    { t: "Escala de pH", q: "1. Si el jugo de tomate presenta un pH de 4.0 y la leche de vaca un pH de 6.0, ¿cuál es la relación de acidez?", o: ["2 veces más ácido.", "20 veces más ácida.", "100 veces más ácido.", "100 veces más básica."], a: 2, exp: "Cada unidad de pH representa un factor logarítmico de 10. Una diferencia de 2 unidades es 10² = 100 veces más concentración de H+." },
+    { t: "Equilibrio Iónico", q: "2. Una muestra de saliva presenta pH de 6.5 a 25 °C. ¿Qué relación de iones describe la solución?", o: ["[H+] < [OH-]", "[H+] > [OH-]", "[H+] = [OH-]", "[H+] = 0 M"], a: 1, exp: "pH < 7 representa una solución ácida, por lo que la concentración de protones es mayor a la de hidróxidos." },
+    { t: "Cálculo de pH", q: "3. ¿Cuál es el pH de una solución con [H3O+] = 1.0 x 10^-9 M?", o: ["5.0", "9.0", "-9.0", "14.0"], a: 1, exp: "pH = -log[1.0 x 10^-9] = 9.0." },
+    { t: "Concentración Molar", q: "4. Se prepara una limonada con pH = 3. ¿Cuál es la concentración [H+]?", o: ["3.0 M", "0.003 M", "1.0 x 10^-3 M", "1.0 x 10^-11 M"], a: 2, exp: "[H+] = 10^-pH = 10^-3 M." },
+    { t: "Dilución y pH", q: "5. ¿Por qué agregar agua pura a una solución diluida de HCl nunca supera pH 7.0?", o: ["Consume protones.", "Se acerca al equilibrio de autoionización del agua.", "El agua es barrera básica.", "Se destruye el logaritmo."], a: 1, exp: "La autoionización del agua (10^-7 M) fija el límite neutro al diluir un ácido." },
+    { t: "Indicadores", q: "6. Al agregar fenolftaleína a un limpiador doméstico se torna fucsia. ¿Qué pH posee?", o: ["pH < 3.1", "4.4 < pH < 6.0", "pH = 7.0", "pH > 8.2"], a: 3, exp: "La fenolftaleína vira a color fucsia en soluciones básicas (pH mayor a 8.2)." },
+    { t: "Titulaciones", q: "7. ¿Por qué agregar exceso de azul de bromotimol es un error analítico?", o: ["Se evapora.", "Al ser un ácido/base débil altera el pH real.", "Precipita.", "Impide medir temperatura."], a: 1, exp: "Los indicadores son ácidos/bases débiles y en exceso reaccionan alterando el punto final." },
+    { t: "Medición de pH", q: "8. ¿Qué método mide pH con incertidumbre menor a ±0.01 unidades?", o: ["Papel tornasol.", "Papel universal.", "Potenciómetro calibrado.", "Rojo de metilo."], a: 2, exp: "El potenciómetro o pH-metro digital permite mediciones de alta precisión." },
+    { t: "Azul de Bromotimol", q: "9. ¿Cuál es el color del azul de bromotimol a pH = 7.0?", o: ["Amarillo.", "Incoloro.", "Verde.", "Azul."], a: 2, exp: "El azul de bromotimol presenta color verde en medio neutro." },
+    { t: "Indicadores Naturales", q: "10. ¿Qué viraje se observa al agregar col morada a vinagre (pH ≈ 2.8)?", o: ["Verde o amarillo.", "Fucsia o rojizo.", "Permanece azul.", "Desprendimiento de gas."], a: 1, exp: "Las antocianinas de la col morada se tornan rojas/fucsias en medio ácido." },
+    { t: "Teoría Arrhenius", q: "11. Según Arrhenius, ¿cuál es la condición para que una sustancia sea base?", o: ["Ceder par e-.", "Aceptar H+.", "Disociarse en agua liberando OH-.", "Octeto incompleto."], a: 2, exp: "Arrhenius define las bases como sustancias que liberan OH- en agua." },
+    { t: "Limitación Arrhenius", q: "12. En NH3(g) + HCl(g) → NH4Cl, ¿por qué Arrhenius no lo explica?", o: ["No ocurre en medio acuoso.", "NH3 es ácido.", "Incombustible.", "Sin cargas."], a: 0, exp: "Arrhenius solo aplica a soluciones en medio acuoso." },
+    { t: "Brönsted-Lowry", q: "13. En HCO3- + H2O ⇌ H2CO3 + OH-, ¿qué papel tiene el HCO3-?", o: ["Ácido.", "Base (acepta H+).", "Ácido de Lewis.", "Sal neutra."], a: 1, exp: "El bicarbonato actúa como base al aceptar un protón del agua." },
+    { t: "Pares Conjugados", q: "14. Identifica la base conjugada del HNO3.", o: ["NO3-", "H2NO3+", "OH-", "NO2-"], a: 0, exp: "La base conjugada del HNO3 resulta de quitar un protón: NO3-." },
+    { t: "Teoría de Lewis", q: "15. En AlCl3 + :Cl- → [AlCl4]-, el AlCl3 actúa como ácido de Lewis porque:", o: ["Libera H+.", "Acepta un par de electrones.", "Libera OH-.", "Dona un protón."], a: 1, exp: "Un ácido de Lewis es un aceptor de pares de electrones." },
+    { t: "pH y pOH", q: "16. Si una solución de KOH tiene [OH-] = 1.0 x 10^-2 M, ¿cuál es su pOH y pH?", o: ["pOH = 12, pH = 2", "pOH = 2, pH = 12", "pOH = 7, pH = 7", "pOH = 1, pH = 13"], a: 1, exp: "pOH = -log(10^-2) = 2. pH = 14 - 2 = 12." },
+    { t: "Escala de pOH", q: "17. Si el pOH es 4.5, ¿cuál es su pH?", o: ["4.5", "7.0", "9.5", "14.0"], a: 2, exp: "pH = 14.0 - 4.5 = 9.5." },
+    { t: "Cálculo de [OH-]", q: "18. ¿Cuál es la [OH-] si el pH es 12.0?", o: ["1.0 x 10^-12 M", "1.0 x 10^-2 M", "2.0 M", "1.0 x 10^-14 M"], a: 1, exp: "pOH = 14 - 12 = 2. Por tanto [OH-] = 10^-2 M." },
+    { t: "Constante Kw", q: "19. ¿Qué le ocurre a Kw si aumenta [H+] a 25 °C?", o: ["Aumenta.", "Disminuye.", "Permanece constante (10^-14).", "Se duplica."], a: 2, exp: "Kw es una constante de equilibrio dependiente solo de la temperatura." },
+    { t: "Electrolitos Fuertes", q: "20. Se disuelven 0.01 moles de HNO3 en 1.0 L de agua. Determina pH y pOH.", o: ["pH = 1, pOH = 13", "pH = 2, pOH = 12", "pH = 12, pOH = 2", "pH = 7, pOH = 7"], a: 1, exp: "[H+] = 0.01 M = 10^-2 M. pH = 2 y pOH = 12." }
+  ];
+
+  var idx = 0;
+  var score = 0;
+  var sel = null;
+  var step = 0; // 0: para comprobar, 1: para siguiente
+
+  function render() {
+    var item = data[idx];
+    document.getElementById("info").innerText = "Pregunta " + (idx + 1) + " de " + data.length;
+    document.getElementById("score").innerText = "Aciertos: " + score;
+    document.getElementById("topic-tag").innerText = item.t;
+    document.getElementById("q-text").innerText = item.q;
+    document.getElementById("fb").style.display = "none";
+    
+    var container = document.getElementById("opts");
+    container.innerHTML = "";
+    
+    item.o.forEach(function(opt, i) {
+      var b = document.createElement("button");
+      b.className = "btn-opt";
+      b.innerText = String.fromCharCode(65 + i) + ") " + opt;
+      b.onclick = function() {
+        if (step === 1) return;
+        sel = i;
+        var all = container.querySelectorAll(".btn-opt");
+        all.forEach(function(btn, k) { btn.classList.toggle("selected", k === i); });
+        document.getElementById("btn-action").disabled = false;
+      };
+      container.appendChild(b);
+    });
+
+    var btn = document.getElementById("btn-action");
+    btn.innerText = "Comprobar";
+    btn.disabled = true;
+    step = 0;
+  }
+
+  function handleAction() {
+    var item = data[idx];
+    var btn = document.getElementById("btn-action");
+    
+    if (step === 0) {
+      var all = document.querySelectorAll(".btn-opt");
+      var isCorrect = (sel === item.a);
+      
+      if (isCorrect) {
+        score++;
+        all[sel].classList.add("correct");
+      } else {
+        all[sel].classList.add("incorrect");
+        all[item.a].classList.add("correct");
+      }
+      
+      var fb = document.getElementById("fb");
+      fb.className = "feedback " + (isCorrect ? "ok" : "err");
+      fb.innerHTML = "<strong>" + (isCorrect ? "¡Correcto!" : "Incorrecto:") + "</strong> " + item.exp;
+      fb.style.display = "block";
+      
+      btn.innerText = "Siguiente ➔";
+      step = 1;
+    } else {
+      idx++;
+      if (idx < data.length) {
+        render();
+      } else {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score").innerText = score + " / " + data.length;
+      }
+    }
+  }
+
+  render();
+</script>
+
+</body>
+</html>
