@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Física: La Luz y sus Propiedades</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #311042 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #38bdf8;
+      --pastel-lime: rgba(56, 189, 248, 0.15);
+      --neon-emerald: #818cf8;
+      --pastel-emerald: rgba(129, 140, 248, 0.15);
+      --neon-cyan: #c084fc;
+      --pastel-cyan: rgba(192, 132, 252, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #93c5fd;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(56, 189, 248, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #7dd3fc;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(129, 140, 248, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Bloque 1</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Conceptos Fundamentales y Relación Inversa",
+      question: "1. Si una onda de radio A tiene una longitud de onda mucho mayor que una onda de luz roja B en el vacío, ¿qué se puede afirmar con certeza sobre sus frecuencias y velocidades?",
+      options: [
+        "La onda A tiene mayor frecuencia y viaja más rápido que B.",
+        "La onda A tiene menor frecuencia y ambas viajan a la misma velocidad c.",
+        "La onda A tiene mayor frecuencia y menor velocidad que B.",
+        "Ambas tienen exactamente la misma frecuencia y longitud de onda."
+      ],
+      answer: 1,
+      explanation: "En el vacío, todas las ondas electromagnéticas viajan a la velocidad c = 3 × 10⁸ m/s. Como λ y f son inversamente proporcionales (c = λ · f), a mayor longitud de onda (λ) corresponde menor frecuencia (f)."
+    },
+    {
+      topic: "Conceptos Fundamentales y Relación Inversa",
+      question: "2. ¿Cómo se origina la emisión de un fotón de luz visible en un átomo según la estructura interna de la materia?",
+      options: [
+        "Cuando un protón abandona el núcleo atómico.",
+        "Cuando un electrón pasa de un nivel de alta energía a uno de menor energía.",
+        "Cuando el átomo gana masa y detiene su movimiento de vibración.",
+        "Cuando un electrón absorbe calor y entra al núcleo."
+      ],
+      answer: 1,
+      explanation: "La emisión fotónica ocurre cuando un electrón decae de un estado cuántico excitado hacia un estado de menor energía, liberando la diferencia energética en forma de onda electromagnética."
+    },
+    {
+      topic: "Conceptos Fundamentales y Relación Inversa",
+      question: "3. Una fuente emite luz azul y otra emite luz roja. La luz azul posee una longitud de onda de 450 nm mientras que la luz roja posee 700 nm. ¿Qué comparación es correcta?",
+      options: [
+        "La luz roja tiene mayor frecuencia y mayor energía por fotón.",
+        "La luz azul tiene mayor frecuencia y mayor energía por fotón.",
+        "La luz azul viaja más rápido en el vacío que la luz roja.",
+        "La luz roja transporta fotones con mayor energía."
+      ],
+      answer: 1,
+      explanation: "A menor longitud de onda (azul = 450 nm < roja = 700 nm), mayor es la frecuencia (f = c / λ) y, por lo tanto, mayor es la energía del fotón (E = h · f)."
+    },
+    {
+      topic: "Conceptos Fundamentales y Relación Inversa",
+      question: "4. Si se triplica la frecuencia de una radiación electromagnética manteniendo el medio de propagación en el vacío, ¿qué cambio experimenta su longitud de onda?",
+      options: [
+        "Se triplica (se multiplica por 3).",
+        "Se reduce a la tercera parte (1/3 de la original).",
+        "Permanece exactamente constante.",
+        "Se multiplica por un factor de 9."
+      ],
+      answer: 1,
+      explanation: "Debido a la proporcionalidad inversa (λ = c / f), al triplicar la frecuencia (3f), la longitud de onda se divide entre tres (λ / 3) para mantener constante la velocidad c."
+    },
+    {
+      topic: "Conceptos Fundamentales y Relación Inversa",
+      question: "5. ¿Cuál de las siguientes unidades pertenece al Sistema Internacional (SI) para medir la frecuencia de una onda electromagnética?",
+      options: [
+        "Nanómetros (nm)",
+        "Hertz (Hz) [equivalente a s⁻¹]",
+        "Joules (J)",
+        "Metros por segundo (m/s)"
+      ],
+      answer: 1,
+      explanation: "La frecuencia expresa el número de oscilaciones por segundo y se mide formalmente en Hertz (Hz = 1/s) dentro del Sistema Internacional."
+    },
+    {
+      topic: "Cálculos de Frecuencia mediante c = λ · f",
+      question: "6. Un láser verde emite luz con una longitud de onda de 5.0 × 10⁻⁷ m en el vacío. Considerando c = 3.0 × 10⁸ m/s, ¿cuál es la frecuencia de esta radiación?",
+      options: [
+        "6.0 × 10¹⁴ Hz",
+        "1.5 × 10² Hz",
+        "1.5 × 10¹⁵ Hz",
+        "6.0 × 10¹¹ Hz"
+      ],
+      answer: 0,
+      explanation: "f = c / λ = (3.0 × 10⁸ m/s) / (5.0 × 10⁻⁷ m) = (3.0 / 5.0) × 10¹⁵ = 0.6 × 10¹⁵ Hz = 6.0 × 10¹⁴ Hz."
+    },
+    {
+      topic: "Cálculos de Frecuencia mediante c = λ · f",
+      question: "7. Una estación de radio emite ondas electromagnéticas con una longitud de onda de 2.5 m. ¿Cuál es la frecuencia a la que transmite la emisora? (Dato: c = 3.0 × 10⁸ m/s)",
+      options: [
+        "7.5 × 10⁸ Hz",
+        "1.2 × 10⁸ Hz",
+        "1.2 × 10⁶ Hz",
+        "8.3 × 10⁷ Hz"
+      ],
+      answer: 1,
+      explanation: "f = c / λ = (3.0 × 10⁸ m/s) / 2.5 m = 1.2 × 10⁸ Hz (equivalente a 120 MHz en la banda de FM)."
+    },
+    {
+      topic: "Cálculos de Frecuencia mediante c = λ · f",
+      question: "8. Un aparato de radiografías dentales utiliza rayos X con una longitud de onda de 1.5 × 10⁻¹⁰ m. ¿Cuál es el valor de su frecuencia en el vacío?",
+      options: [
+        "2.0 × 10¹⁸ Hz",
+        "4.5 × 10⁻² Hz",
+        "2.0 × 10⁻¹⁸ Hz",
+        "4.5 × 10¹⁸ Hz"
+      ],
+      answer: 0,
+      explanation: "f = c / λ = (3.0 × 10⁸ m/s) / (1.5 × 10⁻¹⁰ m) = 2.0 × 10¹⁸ Hz."
+    },
+    {
+      topic: "Cálculos de Frecuencia mediante c = λ · f",
+      question: "9. Una señal de microondas de un teléfono celular tiene una longitud de onda de 0.10 m. Calcula la frecuencia de oscilación de dicha onda.",
+      options: [
+        "3.0 × 10⁷ Hz",
+        "3.0 × 10⁹ Hz",
+        "3.0 × 10⁸ Hz",
+        "1.0 × 10⁸ Hz"
+      ],
+      answer: 1,
+      explanation: "f = c / λ = (3.0 × 10⁸ m/s) / 0.10 m = 3.0 × 10⁹ Hz (o 3 GHz)."
+    },
+    {
+      topic: "Cálculos de Frecuencia mediante c = λ · f",
+      question: "10. Se mide una radiación infrarroja emitida por una estufa con λ = 1.0 × 10⁻⁵ m. ¿Cuál es su frecuencia calculada?",
+      options: [
+        "3.0 × 10¹³ Hz",
+        "3.0 × 10³ Hz",
+        "3.0 × 10⁻³ Hz",
+        "1.0 × 10¹³ Hz"
+      ],
+      answer: 0,
+      explanation: "f = c / λ = (3.0 × 10⁸ m/s) / (1.0 × 10⁻⁵ m) = 3.0 × 10¹³ Hz."
+    },
+    {
+      topic: "Energía del Fotón y la Constante E = h · f",
+      question: "11. Si la energía de un fotón de radiación infrarroja es de E₁, y mediante un experimento se genera un fotón con el CUÁDRUPLE de frecuencia (4f), ¿cuál será la nueva energía E₂?",
+      options: [
+        "E₂ = E₁ / 4",
+        "E₂ = 4 · E₁",
+        "E₂ = 16 · E₁",
+        "E₂ = E₁"
+      ],
+      answer: 1,
+      explanation: "Dado que E = h · f, la energía es directamente proporcional a la frecuencia. Si la frecuencia se cuadruplica (4f), la energía del fotón también se multiplica por 4 (E₂ = 4 · E₁)."
+    },
+    {
+      topic: "Energía del Fotón y la Constante E = h · f",
+      question: "12. Los rayos gamma tienen frecuencias del orden de 10²⁰ Hz mientras que la luz amarilla tiene frecuencias de 10¹⁴ Hz. ¿Por qué los rayos gamma destruyen tejidos vivos?",
+      options: [
+        "Porque viajan a una velocidad 100 veces mayor que la luz visible.",
+        "Porque transportan mucha menor masa que la luz amarilla.",
+        "Porque al tener mayor frecuencia, cada fotón porta una cuantía enorme de energía.",
+        "Porque sus longitudes de onda son de varios kilómetros."
+      ],
+      answer: 2,
+      explanation: "La alta frecuencia implica fotones de altísima energía (E = h · f) capaces de romper enlaces atómicos e ionizar biomoléculas en las células."
+    },
+    {
+      topic: "Energía del Fotón y la Constante E = h · f",
+      question: "13. Un haz de luz A tiene la mitad de la frecuencia que otro haz B (f_A = 0.5 f_B). ¿Cómo se comparan las energías de sus fotones individuales?",
+      options: [
+        "El fotón A tiene el doble de energía que el B.",
+        "El fotón A tiene la mitad de la energía que el B.",
+        "El fotón A tiene la misma energía porque viajan igual.",
+        "El fotón A no posee energía por ser de baja frecuencia."
+      ],
+      answer: 1,
+      explanation: "Al ser E ∝ f, si la frecuencia del haz A es la mitad que la del haz B, la energía contenida en cada fotón se reduce exactamente a la mitad."
+    },
+    {
+      topic: "Energía del Fotón y la Constante E = h · f",
+      question: "14. ¿Cuál de los siguientes colores de la luz visible transporta los fotones con la MENOR cantidad de energía?",
+      options: [
+        "Violeta",
+        "Verde",
+        "Rojo",
+        "Azul"
+      ],
+      answer: 2,
+      explanation: "La luz roja se ubica en el extremo de menor frecuencia (y mayor longitud de onda, ~700 nm) del espectro visible; por lo tanto, sus fotones transportan la menor cantidad de energía."
+    },
+    {
+      topic: "Energía del Fotón y la Constante E = h · f",
+      question: "15. La lámpara de polimerización de un dentista emite luz ultravioleta (UV). ¿Qué característica de la radiación UV permite secar las resinas dentales rápidamente?",
+      options: [
+        "Su baja frecuencia y gran longitud de onda.",
+        "Su alta energía por fotón producto de su elevada frecuencia.",
+        "Que se mueve más rápido que la luz de una lámpara común.",
+        "Que no transporta fotones sino calor por conducción."
+      ],
+      answer: 1,
+      explanation: "La radiación UV posee frecuencias superiores al espectro visible, aportando fotones con suficiente energía para activar los polímeros químicos de la resina."
+    },
+    {
+      topic: "Cálculos de Longitud de Onda mediante λ = c / f",
+      question: "16. ¿Cuál es la longitud de onda en el vacío de una señal de televisión que transmite a una frecuencia de 6.0 × 10⁸ Hz? (Dato: c = 3.0 × 10⁸ m/s)",
+      options: [
+        "0.50 m",
+        "2.0 m",
+        "1.8 × 10¹⁷ m",
+        "5.0 × 10⁻¹ m"
+      ],
+      answer: 0,
+      explanation: "λ = c / f = (3.0 × 10⁸ m/s) / (6.0 × 10⁸ Hz) = 3.0 / 6.0 = 0.50 m (o 5.0 × 10⁻¹ m)."
+    },
+    {
+      topic: "Cálculos de Longitud de Onda mediante λ = c / f",
+      question: "17. Un puntero láser amarillo opera a una frecuencia exacta de 5.0 × 10¹⁴ Hz. Determina la longitud de onda del haz láser emitido.",
+      options: [
+        "6.0 × 10⁻⁷ m",
+        "1.5 × 10²³ m",
+        "6.0 × 10⁻⁶ m",
+        "1.6 × 10⁻⁶ m"
+      ],
+      answer: 0,
+      explanation: "λ = c / f = (3.0 × 10⁸ m/s) / (5.0 × 10¹⁴ Hz) = 0.6 × 10⁻⁶ m = 6.0 × 10⁻⁷ m (equivalente a 600 nm)."
+    },
+    {
+      topic: "Cálculos de Longitud de Onda mediante λ = c / f",
+      question: "18. Un radar meteorológico emite ondas con frecuencia de 3.0 × 10⁹ Hz. ¿Qué longitud de onda presentan estos pulsos?",
+      options: [
+        "1.0 × 10⁻¹ m (10 cm)",
+        "9.0 × 10¹⁷ m",
+        "1.0 × 10¹ m",
+        "3.0 × 10⁻¹ m"
+      ],
+      answer: 0,
+      explanation: "λ = c / f = (3.0 × 10⁸ m/s) / (3.0 × 10⁹ Hz) = 1.0 × 10⁻¹ m = 0.10 m (o 10 cm)."
+    },
+    {
+      topic: "Cálculos de Longitud de Onda mediante λ = c / f",
+      question: "19. Un estudio astrofísico detecta radiación de fondo del universo a una frecuencia de 1.5 × 10¹¹ Hz. ¿A qué longitud de onda corresponde esta señal del espacio?",
+      options: [
+        "2.0 × 10⁻³ m (2 mm)",
+        "4.5 × 10¹⁹ m",
+        "2.0 × 10³ m",
+        "5.0 × 10⁻⁴ m"
+      ],
+      answer: 0,
+      explanation: "λ = c / f = (3.0 × 10⁸ m/s) / (1.5 × 10¹¹ Hz) = 2.0 × 10⁻³ m = 0.002 m (o 2 milímetros)."
+    },
+    {
+      topic: "Cálculos de Longitud de Onda mediante λ = c / f",
+      question: "20. Una lámpara UV germicida emite a una frecuencia de 1.2 × 10¹⁵ Hz. ¿Cuál es su longitud de onda correspondiente?",
+      options: [
+        "2.5 × 10⁻⁷ m",
+        "3.6 × 10²⁵ m",
+        "4.0 × 10⁻⁷ m",
+        "2.5 × 10⁻⁶ m"
+      ],
+      answer: 0,
+      explanation: "λ = c / f = (3.0 × 10⁸ m/s) / (1.2 × 10¹⁵ Hz) = 2.5 × 10⁻⁷ m (equivalente a 250 nm, rango UV-C purificador)."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions; // Mantiene el orden exacto del PDF original
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "⚡ ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 ¡Casi! Justificación física:";
+      feedbackText.innerHTML = "<strong>Fundamento técnico:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "⚡ ¡Dominio Absoluto de la Luz y sus Propiedades!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas la relación inversa entre longitud de onda y frecuencia, cálculos de energía con la constante de Planck y el espectro electromagnético.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación muy avanzado. Revisa los detalles de los despejes o notación científica en los que fallaste para perfeccionar.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos repasar la fórmula c = λ · f y las unidades del Sistema Internacional para la velocidad de la luz.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡No te desanimes! Refuerza la relación proporcional entre frecuencia y energía fotónica para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>

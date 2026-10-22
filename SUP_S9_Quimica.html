@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Química: Agua y Disoluciones</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #083344 35%, #164e63 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #06b6d4;
+      --pastel-lime: rgba(6, 182, 212, 0.15);
+      --neon-emerald: #38bdf8;
+      --pastel-emerald: rgba(56, 189, 248, 0.15);
+      --neon-cyan: #22d3ee;
+      --pastel-cyan: rgba(34, 211, 238, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(6, 182, 212, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #67e8f9;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(6, 182, 212, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(6, 182, 212, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(6, 182, 212, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #cffaffe6;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(6, 182, 212, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Subtema 2.5.1</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Concepto de Soluto y Disolvente",
+      question: "1. En un laboratorio se prepara una solución limpiadora mezclando 30 mL de ácido acético glacial líquido con 470 mL de agua destilada. Identifique los componentes de la mezcla:",
+      options: [
+        "El agua es el soluto y el ácido acético es el disolvente.",
+        "El ácido acético es el soluto y el agua es el disolvente.",
+        "Ambos actúan simultáneamente como disolventes.",
+        "La mezcla es heterogénea por poseer dos líquidos."
+      ],
+      answer: 1,
+      explanation: "El ácido acético se encuentra en menor proporción (30 mL vs 470 mL de agua), por lo que actúa como soluto en la disolución acuosa homogénea."
+    },
+    {
+      topic: "Concepto de Soluto y Disolvente",
+      question: "2. Se elabora una amalgama dental combinando 15 g de plata sólida y 2 g de mercurio líquido. ¿Cuál es el papel del mercurio en esta disolución sólida?",
+      options: [
+        "Es el disolvente por encontrarse en estado líquido.",
+        "Es el soluto por estar en menor cantidad de masa.",
+        "Es un catalizador inerte que no forma parte de la mezcla.",
+        "Es el disolvente porque determina la densidad final."
+      ],
+      answer: 1,
+      explanation: "El estado de agregación inicial no determina por sí solo la función; el soluto es la sustancia que está en menor cantidad (2 g de mercurio frente a 15 g de plata)."
+    },
+    {
+      topic: "Concepto de Soluto y Disolvente",
+      question: "3. El aire atmosférico limpio es una mezcla homogénea gaseosa compuesta aproximadamente por un 78% de nitrógeno, 21% de oxígeno y 1% de otros gases. ¿Cuál actúa como el disolvente?",
+      options: [
+        "El oxígeno.",
+        "El dióxido de carbono.",
+        "El nitrógeno.",
+        "El vapor de agua."
+      ],
+      answer: 2,
+      explanation: "El nitrógeno representa el 78% del volumen total de la mezcla gaseosa (mayor proporción), definiendo al resto de los componentes gaseosos como solutos."
+    },
+    {
+      topic: "Concepto de Soluto y Disolvente",
+      question: "4. Al agregar cristales de sulfato de cobre (CuSO4) azul al agua, la mezcla adquiere un color azul translúcido uniforme. ¿Por qué el agua es el disolvente universal en este proceso?",
+      options: [
+        "Por su capacidad de reaccionar químicamente y destruir los iones.",
+        "Por su elevada polaridad que rodea y separa los iones cristalinos.",
+        "Porque su densidad impide que los sólidos floten en el fondo.",
+        "Porque el agua es siempre una sustancia apolar inerte."
+      ],
+      answer: 1,
+      explanation: "La naturaleza polar de las moléculas de agua produce una atracción dipolo-ión eficaz que disocia la red iónica del soluto (solvatación)."
+    },
+    {
+      topic: "Concepto de Soluto y Disolvente",
+      question: "5. Se preparan cuatro recipientes disolviendo alcohol etílico y agua en las siguientes proporciones. ¿En cuál de ellos el ALCOHOL actúa como disolvente?",
+      options: [
+        "10 mL de alcohol + 90 mL de agua",
+        "40 mL de alcohol + 60 mL de agua",
+        "50 mL de alcohol + 50 mL de agua",
+        "85 mL de alcohol + 15 mL de agua"
+      ],
+      answer: 3,
+      explanation: "El alcohol actúa como disolvente únicamente cuando se encuentra en mayor proporción que el agua (85 mL de alcohol vs. 15 mL de agua)."
+    },
+    {
+      topic: "Concentración: Molaridad y Porcentual",
+      question: "6. ¿Cuál es la concentración Molar (M) de una disolución preparada al disolver 0.40 moles de hidróxido de sodio (NaOH) en agua hasta alcanzar un volumen total de 800 mL?",
+      options: [
+        "0.50 M",
+        "0.32 M",
+        "2.00 M",
+        "0.05 M"
+      ],
+      answer: 0,
+      explanation: "Convertir el volumen a litros: 800 mL = 0.80 L. Molaridad M = n / V = 0.40 mol / 0.80 L = 0.50 M (0.50 mol/L)."
+    },
+    {
+      topic: "Concentración: Molaridad y Porcentual",
+      question: "7. Un estudiante disuelve 25 g de cloruro de potasio (KCl) en 225 g de agua pura. ¿Cuál es la concentración porcentual en masa (% m/m) de la mezcla?",
+      options: [
+        "11.11 % m/m",
+        "10.00 % m/m",
+        "9.00 % m/m",
+        "12.50 % m/m"
+      ],
+      answer: 1,
+      explanation: "Masa de disolución = soluto (25 g) + disolvente (225 g) = 250 g. % m/m = (25 g / 250 g) * 100 = 0.10 * 100 = 10.00 % m/m."
+    },
+    {
+      topic: "Concentración: Molaridad y Porcentual",
+      question: "8. Se desea preparar 500 mL (0.50 L) de una disolución acuosa de glucosa 0.20 M. ¿Cuántos MOLES de glucosa se requieren medir en balanza?",
+      options: [
+        "0.40 mol",
+        "0.10 mol",
+        "1.00 mol",
+        "2.50 mol"
+      ],
+      answer: 1,
+      explanation: "Despejando n de M = n / V ⇒ n = M * V(L) = 0.20 mol/L * 0.50 L = 0.10 moles de glucosa."
+    },
+    {
+      topic: "Concentración: Molaridad y Porcentual",
+      question: "9. Un jarabe medicinal indica en su etiqueta una concentración de sacarosa al 15% m/v. ¿Qué cantidad de masa de sacarosa está contenida en un frasco de 200 mL?",
+      options: [
+        "15 g",
+        "30 g",
+        "13.3 g",
+        "300 g"
+      ],
+      answer: 1,
+      explanation: "% m/v = (g soluto / mL disolución) * 100 ⇒ g soluto = (% m/v * mL) / 100 = (15 * 200) / 100 = 30 g de sacarosa."
+    },
+    {
+      topic: "Concentración: Molaridad y Porcentual",
+      question: "10. Se mezclan 40 g de sal con 160 g de agua. Si por descuido el alumno calcula % m/m usando solo la masa de agua en el denominador, ¿qué error porcentual cometerá respecto al valor correcto?",
+      options: [
+        "Obtendrá 25% cuando lo correcto es 20%.",
+        "Obtendrá 20% cuando lo correcto es 25%.",
+        "Obtendrá 20% cuando lo correcto es 16%.",
+        "No comete ningún error de cálculo."
+      ],
+      answer: 0,
+      explanation: "Cálculo erróneo: (40 / 160) * 100 = 25%. Cálculo correcto: Masa disolución = 40 + 160 = 200 g; (40 / 200) * 100 = 20%. Esto demuestra la importancia de usar la masa de la disolución total."
+    },
+    {
+      topic: "Principales Contaminantes: Físicos, Químicos y Biológicos",
+      question: "11. El agua caliente descargada por el sistema de enfriamiento de una central termoeléctrica hacia un río provoca la reducción del oxígeno disuelto. Este tipo de contaminación es:",
+      options: [
+        "Química inorgánica.",
+        "Física por alteración térmica.",
+        "Biológica por microorganismos.",
+        "Química orgánica sintética."
+      ],
+      answer: 1,
+      explanation: "El calor es un agente físico. La contaminación térmica modifica la temperatura y la solubilidad de gases sin agregar sustancias químicas tóxicas directas."
+    },
+    {
+      topic: "Principales Contaminantes: Físicos, Químicos y Biológicos",
+      question: "12. La presencia de metales pesados como plomo (Pb) y mercurio (Hg) en un acuífero subterráneo se clasifica estrictamente como contaminación:",
+      options: [
+        "Biológica patógena.",
+        "Física por sólidos en suspensión.",
+        "Química inorgánica.",
+        "Física organoléptica."
+      ],
+      answer: 2,
+      explanation: "Los metales pesados son elementos e iones inorgánicos que alteran la composición química del agua y resultan altamente bioacumulables y tóxicos."
+    },
+    {
+      topic: "Principales Contaminantes: Físicos, Químicos y Biológicos",
+      question: "13. Durante una inspección ambiental se detecta un brote epidémico de gastroenteritis debido al consumo de agua con quistes de Giardia lamblia. ¿A qué categoría corresponde este contaminante?",
+      options: [
+        "Biológico por protozoarios patógenos.",
+        "Químico por toxinas inorgánicas.",
+        "Físico por turbidez microbiológica.",
+        "Químico orgánico biodegradable."
+      ],
+      answer: 0,
+      explanation: "Los parásitos, protozoarios, bacterias y virus son agentes biológicos vivos que causan enfermedades infectocontagiosas."
+    },
+    {
+      topic: "Principales Contaminantes: Físicos, Químicos y Biológicos",
+      question: "14. Un río presenta un aspecto blanquecino y espumoso debido al vertido de surfactantes procedentes de lavanderías. ¿Qué combinación de contaminantes está presente?",
+      options: [
+        "Exclusivamente físico por color.",
+        "Químico (detergentes) y físico (espuma y turbidez).",
+        "Biológico fotosintético.",
+        "Térmico y radiactivo."
+      ],
+      answer: 1,
+      explanation: "Los detergentes (agentes tensoactivos) son contaminantes químicos que además alteran la apariencia física y la penetración de luz mediante la formación de espuma."
+    },
+    {
+      topic: "Principales Contaminantes: Físicos, Químicos y Biológicos",
+      question: "15. ¿Cuál de los siguientes casos representa un contaminante FÍSICO del agua que afecta la fotosíntesis de las plantas acuáticas?",
+      options: [
+        "Iones de nitrato procedentes de fertilizantes.",
+        "Alta concentración de sólidos en suspensión (lodo y arcilla) que causan alta turbidez.",
+        "Presencia de la bacteria Vibrio cholerae.",
+        "Restos de plaguicidas organoclorados."
+      ],
+      answer: 1,
+      explanation: "La turbidez provocada por partículas sólidas suspendidas bloquea el paso de la luz solar (efecto físico) imposibilitando la fotosíntesis."
+    },
+    {
+      topic: "Fuentes Generadoras: Industrial, Urbana y Agrícola",
+      question: "16. La fuga de ácido sulfúrico a través de una tubería rota de una mina hacia un arroyo local es un ejemplo claro de contaminación de origen:",
+      options: [
+        "Agrícola difuso.",
+        "Industrial puntual.",
+        "Urbano no puntual.",
+        "Doméstico natural."
+      ],
+      answer: 1,
+      explanation: "Es de origen industrial (minería) y de carácter puntual porque la descarga proviene de un punto geográfico claramente delimitado (una tubería específica)."
+    },
+    {
+      topic: "Fuentes Generadoras: Industrial, Urbana y Agrícola",
+      question: "17. ¿Qué fenómeno ambiental se desencadena en un lago cuando las lluvias arrastran un exceso de nitratos y fosfatos sintéticos desde los campos de cultivo vecinos?",
+      options: [
+        "Salinización por evaporación.",
+        "Eutrofización acuática.",
+        "Acidificación por lluvia ácida.",
+        "Contaminación biológica por helmintos."
+      ],
+      answer: 1,
+      explanation: "La acumulación excesiva de nutrientes agrícolas produce un crecimiento descontrolado de algas, bloqueando la luz y consumiendo el oxígeno disuelto al descomponerse (eutrofización)."
+    },
+    {
+      topic: "Fuentes Generadoras: Industrial, Urbana y Agrícola",
+      question: "18. Durante la época de lluvias, el agua que corre sobre el pavimento de una ciudad arrastra residuos de aceite vehicular, basura y heces de mascotas a lo largo de kilómetros. Esta fuente se clasifica como:",
+      options: [
+        "Fuente difusa de origen urbano.",
+        "Fuente puntual de origen industrial.",
+        "Fuente puntual de origen agrícola.",
+        "Fuente natural no contaminante."
+      ],
+      answer: 0,
+      explanation: "Proviene de la zona urbana (calles) y es difusa porque no hay un único punto de vertido, sino una escorrentía sobre una superficie extensa."
+    },
+    {
+      topic: "Fuentes Generadoras: Industrial, Urbana y Agrícola",
+      question: "19. ¿Cuál de las siguientes descargas corresponde a una fuente generadora URBANA de tipo puntual?",
+      options: [
+        "El escurrimiento de plaguicidas de un huerto frutal.",
+        "La salida principal del tubo de drenaje sanitario público de un municipio hacia un río.",
+        "El filtrado de aceites industriales en un depósito subterráneo amplio.",
+        "Las partículas atmosféricas depositadas por la lluvia en un bosque."
+      ],
+      answer: 1,
+      explanation: "Es urbana (aguas negras municipales) y puntual porque descarga exactamente a través de un colector o tubo final identificado."
+    },
+    {
+      topic: "Fuentes Generadoras: Industrial, Urbana y Agrícola",
+      question: "20. Un estudio hídrico detecta altas concentraciones de coliformes fecales y restos de medicamentos en una laguna. ¿Cuál es la fuente generadora dominante de este impacto?",
+      options: [
+        "Vertidos de la industria galvanoplástica.",
+        "Aguas residuales domésticas e institucionales (Urbana).",
+        "Escorrentía de fertilizantes minerales de maizales.",
+        "Drenaje ácido de minas de carbón."
+      ],
+      answer: 1,
+      explanation: "Los fármacos excretados y las bacterias coliformes son contaminantes distintivos de las descargas sanitarias y urbanas de la población humana."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions; // Mantiene el orden exacto del PDF original
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "💧 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 ¡Casi! Justificación química:";
+      feedbackText.innerHTML = "<strong>Fundamento técnico:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "💧 ¡Dominio Absoluto en Agua y Disoluciones!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas solutos, disolventes, cálculos de Molaridad/%m-m, clasificación de contaminantes y fuentes generadoras.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación muy avanzado. Revisa los detalles conceptuales o de cálculo numérico en los que fallaste para perfeccionar.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos repasar las fórmulas de Molaridad, % m/v y la clasificación de fuentes puntuales vs difusas.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡No te desanimes! Refuerza las definiciones de soluto/disolvente y los tipos de contaminantes para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>
