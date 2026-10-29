@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Reading Comprehension Assessment: Film, Shopping & Work</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      /* Theme 1 Default: Film (Purple) */
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #311042 35%, #1e1b4b 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #c084fc;
+      --pastel-lime: rgba(192, 132, 252, 0.15);
+      --neon-emerald: #a855f7;
+      --pastel-emerald: rgba(168, 85, 247, 0.15);
+      --neon-cyan: #38bdf8;
+      --pastel-cyan: rgba(56, 189, 248, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    /* Theme 1: Film (Cinema Purple) */
+    body.theme-film {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #311042 35%, #1e1b4b 70%, #020617 100%);
+      --neon-lime: #c084fc;
+      --pastel-lime: rgba(192, 132, 252, 0.15);
+      --neon-emerald: #a855f7;
+      --neon-cyan: #38bdf8;
+    }
+
+    /* Theme 2: Shopping (Emerald / Mint) */
+    body.theme-shopping {
+      --bg-gradient: linear-gradient(135deg, #022c22 0%, #064e3b 35%, #0f3f2e 70%, #022c22 100%);
+      --neon-lime: #10b981;
+      --pastel-lime: rgba(16, 185, 129, 0.15);
+      --neon-emerald: #34d399;
+      --neon-cyan: #38bdf8;
+    }
+
+    /* Theme 3: Work (Indigo / Corporate) */
+    body.theme-work {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #1e3a8a 70%, #020617 100%);
+      --neon-lime: #818cf8;
+      --pastel-lime: rgba(129, 140, 248, 0.15);
+      --neon-emerald: #6366f1;
+      --neon-cyan: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+      transition: background 0.5s ease;
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px var(--pastel-lime);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+      transition: border-color 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: border-color 0.5s ease;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px var(--pastel-lime);
+      transition: color 0.5s ease;
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px var(--pastel-lime));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid var(--pastel-lime);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .reading-passage {
+      background: rgba(30, 41, 59, 0.7);
+      border-left: 4px solid var(--neon-lime);
+      padding: clamp(12px, 1.5vw, 18px);
+      border-radius: 12px;
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+      line-height: 1.5;
+      color: #e2e8f0;
+      font-style: italic;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #020617;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px var(--pastel-lime);
+      transition: background 0.5s ease;
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid var(--pastel-lime);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px var(--pastel-lime);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: var(--text-main);
+      box-shadow: 0 0 20px var(--pastel-lime);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #020617;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #020617;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #020617;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(244, 63, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #020617;
+      box-shadow: 0 6px 20px var(--pastel-lime);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #020617;
+      display: none;
+      box-shadow: 0 6px 20px var(--pastel-emerald);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px var(--pastel-lime);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px var(--pastel-lime));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #020617;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px var(--pastel-lime);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="theme-film">
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Question 1 of 20</span>
+        <span id="scoreCounter">Score: 0</span>
+        <span class="shortcut-hint">💡 Press keys [A, B, C, D] and [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Section 1: Film</span>
+    <div class="reading-passage" id="passageText"></div>
+    <h2 class="question-text" id="questionText">Loading question...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Check Answer</button>
+      <button class="action-btn btn-next" id="nextBtn">Next Question ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">Assessment Completed!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Performance breakdown</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Restart Assessment</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      themeClass: "theme-film",
+      topic: "SECTION 1: FILM",
+      passage: "Text A (Film Review): \"The new sci-fi thriller 'Solaris Rising' features stunning visual effects and outstanding cinematography. However, the plot feels repetitive in the middle act, and the dialogue is occasionally weak. Nevertheless, the main actor delivers a convincing performance that holds the audience's attention until the end.\"",
+      question: "1. What is the reviewer's overall opinion of 'Solaris Rising'?",
+      options: [
+        "Completely negative and boring",
+        "Positive overall despite some flaws",
+        "Flawless masterpiece in cinema",
+        "Extremely confusing and slow"
+      ],
+      answer: 1,
+      explanation: "The reviewer mentions flaws (repetitive plot, weak dialogue) but balances them with praise ('stunning visual effects', 'convincing performance'), showing a generally positive view despite weaknesses."
+    },
+    {
+      themeClass: "theme-film",
+      topic: "SECTION 1: FILM",
+      passage: "Text A (Film Review): \"The new sci-fi thriller 'Solaris Rising' features stunning visual effects and outstanding cinematography. However, the plot feels repetitive in the middle act, and the dialogue is occasionally weak. Nevertheless, the main actor delivers a convincing performance that holds the audience's attention until the end.\"",
+      question: "2. Based on Text A, what specific aspect of the film is criticized?",
+      options: [
+        "The special effects",
+        "The main actor's acting",
+        "The middle part of the story",
+        "The soundtrack"
+      ],
+      answer: 2,
+      explanation: "The text states that 'the plot feels repetitive in the middle act', directly criticizing the pacing/story in the middle section."
+    },
+    {
+      themeClass: "theme-film",
+      topic: "SECTION 1: FILM",
+      passage: "Text B (Cinema Notice): \"Due to unexpected technical maintenance in Screen 4, tonight's 8:00 PM screening of 'The Lost City' is rescheduled to Screen 2. Ticket holders can either use their current tickets or claim a full refund at the box office before 7:30 PM.\"",
+      question: "3. What option is offered to viewers who do NOT want to watch the rescheduled screening?",
+      options: [
+        "Free popcorn at the counter",
+        "A ticket for a different day",
+        "A complete money refund",
+        "Access to VIP lounge"
+      ],
+      answer: 2,
+      explanation: "The notice explicitly states ticket holders can 'claim a full refund at the box office'."
+    },
+    {
+      themeClass: "theme-film",
+      topic: "SECTION 1: FILM",
+      passage: "Text B (Cinema Notice): \"Due to unexpected technical maintenance in Screen 4, tonight's 8:00 PM screening of 'The Lost City' is rescheduled to Screen 2. Ticket holders can either use their current tickets or claim a full refund at the box office before 7:30 PM.\"",
+      question: "4. In Text B, why was the movie room changed?",
+      options: [
+        "Screen 4 was completely full",
+        "Screen 4 required technical repairs",
+        "Screen 2 had better seating",
+        "The director requested the change"
+      ],
+      answer: 1,
+      explanation: "The text specifies 'Due to unexpected technical maintenance in Screen 4'."
+    },
+    {
+      themeClass: "theme-film",
+      topic: "SECTION 1: FILM",
+      passage: "Text C (Director Interview Excerpt): \"When we started filming 'Silent Echoes', everyone expected a predictable romance. We decided to rewrite the third act completely. The twist ending took audiences by surprise, which was precisely our goal from day one.\"",
+      question: "5. What can be inferred about the final version of 'Silent Echoes'?",
+      options: [
+        "It had a typical, expected conclusion",
+        "It changed direction to surprise viewers",
+        "It failed to entertain the public",
+        "It was canceled halfway through"
+      ],
+      answer: 1,
+      explanation: "The director states they rewrote the ending to create a 'twist ending' that took audiences by surprise, avoiding a predictable plot."
+    },
+    {
+      themeClass: "theme-film",
+      topic: "SECTION 1: FILM",
+      passage: "Text C (Director Interview Excerpt): \"When we started filming 'Silent Echoes', everyone expected a predictable romance. We decided to rewrite the third act completely. The twist ending took audiences by surprise, which was precisely our goal from day one.\"",
+      question: "6. What was the original expectation for 'Silent Echoes' before the rewrite?",
+      options: [
+        "A predictable romance story",
+        "An action-packed superhero film",
+        "A historical documentary",
+        "A horror story"
+      ],
+      answer: 0,
+      explanation: "The text notes 'everyone expected a predictable romance' before the changes."
+    },
+    {
+      themeClass: "theme-film",
+      topic: "SECTION 1: FILM",
+      passage: "General Vocabulary in Film Reviews",
+      question: "7. The word 'convincing' in film critiques is best defined as:",
+      options: [
+        "Loud and exaggerated",
+        "Believable and realistic",
+        "Fast and energetic",
+        "Funny and humorous"
+      ],
+      answer: 1,
+      explanation: "In cinema context, a 'convincing performance' means the acting feels believable and authentic."
+    },
+    {
+      themeClass: "theme-shopping",
+      topic: "SECTION 2: SHOPPING",
+      passage: "Text D (Customer Service Chat):\nCustomer: \"Hello. I bought a smart watch yesterday, but the screen turns off every five minutes and won't charge.\"\nAgent: \"I am sorry to hear that. Do you have your receipt and original packaging?\"\nCustomer: \"Yes, I have both. I don't want a repair; I prefer a full refund or a new unit.\"",
+      question: "8. What is the customer's main objective in Text D?",
+      options: [
+        "To ask for technical repair advice",
+        "To replace or return a defective product",
+        "To buy additional watch accessories",
+        "To complement the store manager"
+      ],
+      answer: 1,
+      explanation: "The customer explicitly mentions the smartwatch is broken and states 'I prefer a full refund or a new unit.'"
+    },
+    {
+      themeClass: "theme-shopping",
+      topic: "SECTION 2: SHOPPING",
+      passage: "Text D (Customer Service Chat):\nCustomer: \"Hello. I bought a smart watch yesterday, but the screen turns off every five minutes and won't charge.\"\nAgent: \"I am sorry to hear that. Do you have your receipt and original packaging?\"\nCustomer: \"Yes, I have both. I don't want a repair; I prefer a full refund or a new unit.\"",
+      question: "9. Why does the agent ask for the receipt in Text D?",
+      options: [
+        "To offer a discount coupon",
+        "To verify proof of purchase",
+        "To check the customer's home address",
+        "To sell an extended warranty"
+      ],
+      answer: 1,
+      explanation: "Receipts are standard store proof required to validate purchases before granting refunds or exchanges."
+    },
+    {
+      themeClass: "theme-shopping",
+      topic: "SECTION 2: SHOPPING",
+      passage: "Text E (Store Discount Announcement): \"SPRING SALE! All winter jackets are currently 20% off the original price. Today only, if you pay with cash, you get an extra 10% discount on the already reduced price!\"",
+      question: "10. If a jacket originally costs $100, what is the price after the initial 20% spring discount?",
+      options: [
+        "$70",
+        "$80",
+        "$85",
+        "$90"
+      ],
+      answer: 1,
+      explanation: "20% of $100 is $20. $100 - $20 = $80."
+    },
+    {
+      themeClass: "theme-shopping",
+      topic: "SECTION 2: SHOPPING",
+      passage: "Text E Math Application: Discount calculations in everyday shopping contexts.",
+      question: "11. A customer bought a coat on sale for $45 after receiving a 10% discount off the original price. What was the original price?",
+      options: [
+        "$48",
+        "$50",
+        "$55",
+        "$60"
+      ],
+      answer: 1,
+      explanation: "The sale price ($45) represents 90% (0.90) of the original price. $45 / 0.90 = $50."
+    },
+    {
+      themeClass: "theme-shopping",
+      topic: "SECTION 2: SHOPPING",
+      passage: "Text E Math Application: Discount calculations in everyday shopping contexts.",
+      question: "12. A wireless speaker is sold for $70 after a 30% discount. What was the original tag price?",
+      options: [
+        "$90",
+        "$100",
+        "$110",
+        "$120"
+      ],
+      answer: 1,
+      explanation: "The discounted price ($70) corresponds to 70% (0.70) of the original tag price. $70 / 0.70 = $100."
+    },
+    {
+      themeClass: "theme-shopping",
+      topic: "SECTION 2: SHOPPING",
+      passage: "Text F (Return Policy Sign): \"Returns are accepted within 30 days of purchase with a valid receipt. Items must be unworn, undamaged, and in original packaging. Clearance items marked 'Final Sale' are non-refundable.\"",
+      question: "13. According to Text F, which item CANNOT be returned under any circumstance?",
+      options: [
+        "A pair of shoes bought 10 days ago with receipt",
+        "A jacket marked 'Final Sale'",
+        "A shirt in its original box",
+        "A sweater paid in cash"
+      ],
+      answer: 1,
+      explanation: "The policy explicitly notes that clearance items marked 'Final Sale' are non-refundable."
+    },
+    {
+      themeClass: "theme-shopping",
+      topic: "SECTION 2: SHOPPING",
+      passage: "Text F (Return Policy Sign): \"Returns are accepted within 30 days of purchase with a valid receipt. Items must be unworn, undamaged, and in original packaging. Clearance items marked 'Final Sale' are non-refundable.\"",
+      question: "14. What time limit is set for regular returns in Text F?",
+      options: [
+        "15 days",
+        "30 days",
+        "60 days",
+        "90 days"
+      ],
+      answer: 1,
+      explanation: "The text establishes 'Returns are accepted within 30 days of purchase'."
+    },
+    {
+      themeClass: "theme-work",
+      topic: "SECTION 3: WORK AND JOBS",
+      passage: "Text G (Job Advertisement):\n\"WANTED: Part-Time Receptionist for Medical Clinic.\n- Requirements: High school diploma, fluent English, basic computer skills.\n- Schedule: Monday to Thursday, 2:00 PM to 6:00 PM (16 hrs/week).\n- Duties: Greeting patients, answering phone calls, scheduling appointments.\"",
+      question: "15. Which candidate meets ALL the requirements for the job in Text G?",
+      options: [
+        "Mark: Available full-time, speaks fluent English, no computer skills",
+        "Sarah: High school graduate, fluent English, computer literate, available PM",
+        "David: College student, available only on Friday and Saturday",
+        "Elena: Speaks basic English, high computer skills, available mornings"
+      ],
+      answer: 1,
+      explanation: "Sarah satisfies every condition: high school diploma, fluent English, computer skills, and afternoon availability."
+    },
+    {
+      themeClass: "theme-work",
+      topic: "SECTION 3: WORK AND JOBS",
+      passage: "Text G (Job Advertisement):\n\"WANTED: Part-Time Receptionist for Medical Clinic.\n- Requirements: High school diploma, fluent English, basic computer skills.\n- Schedule: Monday to Thursday, 2:00 PM to 6:00 PM (16 hrs/week).\n- Duties: Greeting patients, answering phone calls, scheduling appointments.\"",
+      question: "16. What type of work contract is offered in Text G?",
+      options: [
+        "Full-time remote work",
+        "Night-shift position",
+        "Part-time position",
+        "Unpaid internship"
+      ],
+      answer: 2,
+      explanation: "The title explicitly states 'WANTED: Part-Time Receptionist' (16 hrs/week)."
+    },
+    {
+      themeClass: "theme-work",
+      topic: "SECTION 3: WORK AND JOBS",
+      passage: "Text H (Company Remote Work Policy): \"Remote work requests are evaluated individually by department heads based on task nature, employee performance, and team coverage. Approval is not automatic and must be renewed every six months.\"",
+      question: "17. What can be inferred about remote work policy in Text H?",
+      options: [
+        "Every employee is entitled to work from home automatically",
+        "Approvals depend on specific job duties and supervisor criteria",
+        "Remote work contracts last indefinitely once granted",
+        "Only new hires can apply for teleworking"
+      ],
+      answer: 1,
+      explanation: "The policy outlines that requests are evaluated individually based on task nature and supervisor review, not granted automatically."
+    },
+    {
+      themeClass: "theme-work",
+      topic: "SECTION 3: WORK AND JOBS",
+      passage: "Text H (Company Remote Work Policy): \"Remote work requests are evaluated individually by department heads based on task nature, employee performance, and team coverage. Approval is not automatic and must be renewed every six months.\"",
+      question: "18. According to Text H, how often must remote work permissions be reviewed?",
+      options: [
+        "Every month",
+        "Every six months",
+        "Every year",
+        "Every two years"
+      ],
+      answer: 1,
+      explanation: "The text specifies that approval 'must be renewed every six months.'"
+    },
+    {
+      themeClass: "theme-work",
+      topic: "SECTION 3: WORK AND JOBS",
+      passage: "Text I (Internal Memo): \"All staff members participating in the weekend trade fair will receive overtime pay plus a compensatory day off during the following week, subject to prior manager approval.\"",
+      question: "19. What two benefits are offered to employees working the trade fair in Text I?",
+      options: [
+        "Free lunch and store discounts",
+        "Overtime pay and a day off",
+        "Salary promotion and gift card",
+        "Transport refund and bonus point"
+      ],
+      answer: 1,
+      explanation: "The memo lists 'overtime pay plus a compensatory day off' as compensation."
+    },
+    {
+      themeClass: "theme-work",
+      topic: "SECTION 3: WORK AND JOBS",
+      passage: "Workplace Terminology & Vocabulary",
+      question: "20. In job adverts, the term 'duties' refers to:",
+      options: [
+        "Salary and payment methods",
+        "Specific work tasks and responsibilities",
+        "Vacation days per year",
+        "Employee dress code rules"
+      ],
+      answer: 1,
+      explanation: "'Duties' defines the core responsibilities and tasks required in a job position."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var passageText = document.getElementById("passageText");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions; // Preserves exact PDF order
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    // Change theme dynamically
+    document.body.className = q.themeClass;
+
+    questionCounter.textContent = "Question " + (currentQuestionIndex + 1) + " of " + questions.length;
+    scoreCounter.textContent = "Score: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    passageText.innerHTML = q.passage;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Score: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🎉 Excellent! Correct Answer";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Reading Insight:";
+      feedbackText.innerHTML = "<strong>Text Evidence:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🏆 Master Reading Comprehension!";
+      msg = "Outstanding! You correctly answered all 20 questions across Film, Shopping, and Work comprehension texts.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 Excellent Performance!";
+      msg = "You have a strong reading comprehension level. Review the specific text details you missed to achieve perfection.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 Good Effort!";
+      msg = "You are on the right track. Practice identifying key facts, inferences, and context vocabulary in passages.";
+    } else {
+      resultTitle.textContent = "💪 Keep Practicing!";
+      msg = "Don't give up! Re-read the passage texts carefully before making choices to improve your score.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>
