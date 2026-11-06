@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Biología: Genética y Biotecnología</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #064e3b 35%, #0284c7 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #10b981;
+      --pastel-lime: rgba(16, 185, 129, 0.15);
+      --neon-emerald: #06b6d4;
+      --pastel-emerald: rgba(6, 182, 212, 0.15);
+      --neon-cyan: #34d399;
+      --pastel-cyan: rgba(52, 211, 153, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(16, 185, 129, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #6ee7b7;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(16, 185, 129, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #6ee7b7;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Biología: Genética y Biotecnología</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Cruces Monohíbridos y Dominancia",
+      question: "1. En los conejos, el color de pelo negro está determinado por el alelo dominante N y el pelo blanco por el alelo recesivo n. Si se cruza un individuo homocigoto dominante (NN) con un individuo heterocigoto (Nn), ¿qué porcentaje de los descendientes se espera que sea de pelo negro?",
+      options: [
+        "50%",
+        "100%",
+        "75%",
+        "25%"
+      ],
+      answer: 1,
+      explanation: "Al cruzar NN × Nn, los genotipos obtenidos en el Cuadro de Punnett son 50% NN y 50% Nn. Debido a que el alelo N es dominante, el 100% de la descendencia presentará el fenotipo de pelo negro."
+    },
+    {
+      topic: "Conceptos Fundamentales de Genética",
+      question: "2. ¿Cuál de los siguientes pares de términos diferencia correctamente el conjunto de genes invisibles a simple vista de las características físicas observables de un individuo?",
+      options: [
+        "Genotipo y Fenotipo.",
+        "Cromosoma y Cariotipo.",
+        "Homocigoto y Heterocigoto.",
+        "Mitosis y Meiosis."
+      ],
+      answer: 0,
+      explanation: "El genotipo corresponde a la combinación interna de genes en el ADN, mientras que el fenotipo es la expresión visible o medible de esos genes influenciados por el ambiente."
+    },
+    {
+      topic: "Proporciones Mendelianas (F₂)",
+      question: "3. En los guisantes, la semilla lisa es determinada por el alelo L (dominante) y la rugosa por l (recesivo). Si se cruzan dos plantas heterocigotas (Ll × Ll), ¿qué proporción de la descendencia tendrá semillas rugosas?",
+      options: [
+        "75% (3/4)",
+        "25% (1/4)",
+        "50% (1/2)",
+        "0% (0/4)"
+      ],
+      answer: 1,
+      explanation: "El cruce entre dos heterocigotos (Ll × Ll) produce los genotipos 1/4 LL, 2/4 Ll y 1/4 ll. Las semillas rugosas corresponden al genotipo homocigoto recesivo (ll), que es el 25% del total."
+    },
+    {
+      topic: "Relación Gen-Proteína-Fenotipo",
+      question: "4. ¿Cuál es la razón bioquímica fundamental por la cual la modificación de la secuencia de bases en un gen puede cambiar el aspecto o funcionamiento de un organismo?",
+      options: [
+        "Porque las bases del ADN se convierten directamente en lípidos y carbohidratos.",
+        "Porque los genes contienen el código para la síntesis de proteínas específicas que llevan a cabo las funciones y estructuras del cuerpo.",
+        "Porque al cambiar una base se duplica el número de cromosomas del núcleo.",
+        "Porque el ADN destruye la membrana celular si su secuencia cambia."
+      ],
+      answer: 1,
+      explanation: "Los genes se transcriben y traducen para construir proteínas. Una alteración en la secuencia del ADN puede modificar la secuencia de aminoácidos de una proteína, afectando su estructura y función, lo que altera el fenotipo."
+    },
+    {
+      topic: "Cromosomas Sexuales",
+      question: "5. En la especie humana, los cromosomas sexuales determinan el sexo biológico. ¿Qué combinación cromosómica corresponde al sexo femenino y cuál al masculino?",
+      options: [
+        "Femenino XY, Masculino XX",
+        "Femenino XX, Masculino XY",
+        "Femenino YY, Masculino XX",
+        "Femenino XX, Masculino YY"
+      ],
+      answer: 1,
+      explanation: "Las hembras poseen un par de cromosomas sexuales homólogos XX, mientras que los machos poseen un par heterólogo XY."
+    },
+    {
+      topic: "Definición de Homocigoto Recesivo",
+      question: "6. Se dice que un individuo es 'homocigoto recesivo' para una característica cuando sus alelos son:",
+      options: [
+        "Dos alelos distintos, uno dominante y uno recesivo (Aa).",
+        "Dos alelos iguales y dominantes (AA).",
+        "Dos alelos iguales de tipo recesivo (aa).",
+        "Un solo alelo sin pareja cromosómica."
+      ],
+      answer: 2,
+      explanation: "La condición homocigota implica tener alelos idénticos en ambos cromosomas homólogos, y recesivo requiere que ambos sean la variante de menor jerarquía expresiva (aa)."
+    },
+    {
+      topic: "Primera Ley de Mendel (Uniformidad)",
+      question: "7. Si una planta homocigota de flores rojas (RR) se cruza con una de flores blancas (rr), ¿cuál será el genotipo del 100% de los descendientes en la primera generación (F₁)?",
+      options: [
+        "RR",
+        "rr",
+        "Rr",
+        "50% RR y 50% rr"
+      ],
+      answer: 2,
+      explanation: "El progenitor RR solo aporta gametos R y el progenitor rr solo aporta gametos r. La combinación resultante en toda la descendencia es 100% heterocigota (Rr)."
+    },
+    {
+      topic: "Ubicación Celular del Material Genético",
+      question: "8. ¿Dónde se localizan físicamente los genes dentro de una célula eucariota típica?",
+      options: [
+        "En la pared celular de celulosa.",
+        "En las vacuolas del citoplasma.",
+        "En los cromosomas dentro del núcleo celular.",
+        "En los ribosomas libres del aparato de Golgi."
+      ],
+      answer: 2,
+      explanation: "Los genes son segmentos lineales de ADN contenidos dentro de las estructuras cromosómicas ubicadas en el núcleo de las células eucariotas."
+    },
+    {
+      topic: "Reconocimiento de Fenotipo",
+      question: "9. Un estudiante observa dos gatos de la misma camada: uno tiene el pelaje totalmente blanco y el otro pelaje manchado. La observación del color del pelaje corresponde al concepto de:",
+      options: [
+        "Genotipo",
+        "Fenotipo",
+        "Cariotipo",
+        "Transgénesis"
+      ],
+      answer: 1,
+      explanation: "Las características externas observables a simple vista, como el color del pelaje, forman parte del fenotipo del organismo."
+    },
+    {
+      topic: "Proporción Genotípica Heterocigota",
+      question: "10. Si se realiza un cruce entre dos moscas de la fruta heterocigotas (Aa × Aa), ¿cuál es la proporción genotípica esperada en la descendencia?",
+      options: [
+        "1 AA : 2 Aa : 1 aa",
+        "3 AA : 1 aa",
+        "2 AA : 2 aa",
+        "1 AA : 1 aa"
+      ],
+      answer: 0,
+      explanation: "Al cruzar dos heterocigotos, la segregación de alelos produce 25% homocigotos dominantes (AA), 50% heterocigotos (Aa) y 25% homocigotos recesivos (aa), lo que equivale a la relación 1:2:1."
+    },
+    {
+      topic: "Definición de Transgénesis",
+      question: "11. ¿En qué consiste fundamentalmente la técnica biotecnológica conocida como 'transgénesis'?",
+      options: [
+        "En la duplicación idéntica de un individuo mediante la clonación de sus células adultas.",
+        "En transferir e insertar un gen específico de una especie dentro del ADN de otra especie distinta.",
+        "En cruzar dos organismos mediante métodos tradicionales de selección agrícola.",
+        "En someter a una planta a radiación para destruir su material genético."
+      ],
+      answer: 1,
+      explanation: "La transgénesis implica tomar un gen con una característica deseada de un organismo donante e insertarlo mediante ingeniería genética en el genoma de un organismo receptor de diferente especie."
+    },
+    {
+      topic: "Universalidad del Código Genético",
+      question: "12. Para producir la hormona de crecimiento humano mediante biotecnología, los científicos introducen el gen humano de dicha hormona dentro del ADN de bacterias. ¿Por qué la bacteria es capaz de sintetizar la hormona humana?",
+      options: [
+        "Porque las bacterias y los humanos tienen los mismos órganos.",
+        "Porque el código genético es universal y la bacteria puede leer el gen e integrar los aminoácidos correspondientes.",
+        "Porque la bacteria muta instantáneamente transformándose en una célula humana.",
+        "Porque la hormona humana destruye los genes bacterianos originales."
+      ],
+      answer: 1,
+      explanation: "El código genético es universal en casi todos los seres vivos. Esto significa que la maquinaria celular bacteriana puede interpretar la secuencia del gen humano e instruir la síntesis de la misma proteína."
+    },
+    {
+      topic: "Evaluación de Bioseguridad Ambiental",
+      question: "13. Una empresa biotecnológica desarrolla una variedad de maíz transgénico que produce su propio insecticida contra el gusano cogollero. ¿Qué evaluación científica debe realizarse obligatoriamente antes de permitir su siembra masiva en el campo?",
+      options: [
+        "Ninguna, ya que todas las plantas transgénicas son completamente inofensivas.",
+        "Determinar su impacto en insectos benéficos (como polinizadores) y evaluar posibles riesgos ecológicos en el suelo.",
+        "Analizar únicamente el color y el sabor del grano cosechado.",
+        "Verificar que la planta no necesite luz solar ni agua para crecer."
+      ],
+      answer: 1,
+      explanation: "El cultivo extensivo de organismos modificados genéticamente requiere una evaluación integral de bioseguridad ambiental para prevenir daños no deseados a organismos polinizadores, cadenas tróficas o ecosistemas locales."
+    },
+    {
+      topic: "Beneficios Agrícolas de la Biotecnología",
+      question: "14. ¿Cuál de las siguientes aplicaciones representa un beneficio directo de la manipulación genética en el campo de la agricultura?",
+      options: [
+        "Aumento irreversible de la evaporación del agua de riego.",
+        "Obtención de cosechas más resistentes a plagas y condiciones extremas de sequía.",
+        "Reducción del contenido de vitaminas en las frutas comestibles.",
+        "Incremento obligado en el uso de fertilizantes tóxicos."
+      ],
+      answer: 1,
+      explanation: "Uno de los mayores logros de la biotecnología agrícola es el desarrollo de plantas de cultivo con resistencia mejorada a factores de estrés ambiental (sequía, salinidad) y ataques de insectos."
+    },
+    {
+      topic: "Selección Artificial vs Ingeniería Genética",
+      question: "15. ¿Qué diferencia existe entre la selección artificial tradicional (usada por los agricultores durante siglos) y la ingeniería genética moderna?",
+      options: [
+        "La selección artificial modifica los genes con láser y la ingeniería genética usa fertilizantes.",
+        "La selección artificial cruza organismos de la misma especie seleccionando rasgos visibles; la ingeniería genética manipula directamente el ADN e inserta genes entre diferentes especies.",
+        "La ingeniería genética no utiliza ADN en sus procedimientos.",
+        "La selección artificial solo se aplica en bacterias y virus."
+      ],
+      answer: 1,
+      explanation: "Mientras que la selección tradicional depende de cruces naturales dentro de la misma especie a lo largo de varias generaciones, la ingeniería genética trabaja a nivel molecular insertando genes específicos directamente en el genoma, superando la barrera de especie."
+    },
+    {
+      topic: "Análisis Bioético y Precaución",
+      question: "16. Se propone liberar mosquitos machos estériles modificados genéticamente en una zona azotada por el dengue para reducir la población del vector. ¿Qué postura demuestra un análisis bioético y ambientalmente responsable por parte de las autoridades sanitarias?",
+      options: [
+        "Prohibir cualquier desarrollo científico sin importar las muertes por dengue.",
+        "Liberar los mosquitos de forma masiva e inmediata sin pruebas previas.",
+        "Realizar estudios previos controlados para evaluar la efectividad del método y monitorear posibles impactos ecológicos no deseados.",
+        "Exterminar a todas las demás especies de insectos de la región de forma simultánea."
+      ],
+      answer: 2,
+      explanation: "El principio de precaución y la ciencia responsable exigen validar en pruebas de campo controladas tanto la eficacia del método como la ausencia de impactos nocivos graves en los ecosistemas locales antes de su despliegue a gran escala."
+    },
+    {
+      topic: "Organismos Genéticamente Modificados",
+      question: "17. ¿Cómo se le denomina a un organismo que ha incorporado en su material genético un gen procedente de una especie distinta mediante técnicas de ingeniería genética?",
+      options: [
+        "Organismo homocigoto",
+        "Organismo transgénico u OGM",
+        "Organismo mutante natural",
+        "Organismo fósil"
+      ],
+      answer: 1,
+      explanation: "Un Organismo Genéticamente Modificado (OGM) o transgénico es aquel cuyo genoma ha sido alterado mediante la introducción de uno o más transgenes de otra especie."
+    },
+    {
+      topic: "Herramientas Moleculares (Enzimas de Restricción)",
+      question: "18. ¿Qué papel juegan las 'enzimas de restricción' en el proceso de manipulación genética en el laboratorio?",
+      options: [
+        "Actúan como 'tijeras moleculares' que cortan el ADN en secuencias de nucleótidos específicas.",
+        "Copian los cromosomas completos de un organismo durante la división.",
+        "Destruyen los ribosomas bacterianos para evitar mutaciones.",
+        "Conectan la membrana celular con el citoplasma."
+      ],
+      answer: 0,
+      explanation: "Las enzimas de restricción son herramientas fundamentales en biotecnología porque reconocen y cortan fragmentos de ADN en sitios específicos con alta precisión."
+    },
+    {
+      topic: "Biofortificación de Alimentos",
+      question: "19. Un grupo científico utiliza la biotecnología para desarrollar arroz enriquecido con betacaroteno (precursor de la vitamina A) destinado a comunidades con desnutrición. ¿Qué tipo de aplicación biotecnológica representa este desarrollo?",
+      options: [
+        "Biofortificación de alimentos para la salud pública.",
+        "Control biológico de plagas urbanas.",
+        "Clonación reproductiva de animales de granja.",
+        "Terapia génica en células madre adultas."
+      ],
+      answer: 0,
+      explanation: "El llamado 'arroz dorado' es un ejemplo de biofortificación mediante transgénesis, orientada a mejorar el valor nutricional de cultivos de consumo masivo para combatir deficiencias nutricionales en la población."
+    },
+    {
+      topic: "Dilemas Bioéticos en Humanos",
+      question: "20. ¿Cuál de las siguientes situaciones representa un dilema bioético asociado al uso de la manipulación genética en humanos?",
+      options: [
+        "La producción de vacunas recombinantes contra virus mortales.",
+        "La posibilidad de modificar genes en embriones humanos para seleccionar rasgos físicos no médicos o estéticos.",
+        "El uso de bacterias para limpiar derrames de petróleo.",
+        "La obtención de insulina purificada a partir de cultivos bacterianos."
+      ],
+      answer: 1,
+      explanation: "La edición genética en la línea germinal humana con fines eugenésicos o estéticos plantea serios cuestionamientos éticos sobre la discriminación, el consentimiento informado y los límites de la intervención científica en la especie humana."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge badge");
+  var topicBadgeElem = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions;
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadgeElem.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🧬 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Justificación biológica:";
+      feedbackText.innerHTML = "<strong>Fundamento técnico:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🧬 ¡Dominio Absoluto en Genética y Biotecnología!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas las leyes de Mendel, cruces genéticos, transgénesis, enzimas de restricción y bioética ambiental.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación en biología muy avanzado. Revisa detalladamente los cruces de Punnett y la diferencia entre fenotipo y genotipo para perfeccionar.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos repasar la diferencia entre la selección artificial y la ingeniería genética, así como las proporciones mendelianas.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡No te desanimes! Refuerza los conceptos de cruces genéticos (homocigotos vs heterocigotos) y las aplicaciones biotecnológicas para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>

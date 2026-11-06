@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Biología: ADN, ARN y Expresión Genética</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #2e1065 35%, #1e1b4b 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #a855f7;
+      --pastel-lime: rgba(168, 85, 247, 0.15);
+      --neon-emerald: #c084fc;
+      --pastel-emerald: rgba(192, 132, 252, 0.15);
+      --neon-cyan: #e879f9;
+      --pastel-cyan: rgba(232, 121, 249, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px var(--pastel-lime);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px var(--pastel-lime);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px var(--pastel-lime));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid var(--pastel-lime);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #020617;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px var(--pastel-lime);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid var(--pastel-lime);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px var(--pastel-lime);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: var(--text-main);
+      box-shadow: 0 0 20px var(--pastel-lime);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #020617;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #020617;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #020617;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(244, 63, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #020617;
+      box-shadow: 0 6px 20px var(--pastel-lime);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #020617;
+      display: none;
+      box-shadow: 0 6px 20px var(--pastel-emerald);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px var(--pastel-lime);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px var(--pastel-lime));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #020617;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px var(--pastel-lime);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Biología Molecular: ADN, ARN y Expresión Genética</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Reglas de Chargaff",
+      question: "1. Un análisis de laboratorio revela que una muestra de ADN bicatenario aislado del núcleo de una célula eucariota contiene un 28% de Citosina. ¿Cuál es el porcentaje esperado de Timina en dicha muestra según las reglas de Chargaff?",
+      options: [
+        "28%",
+        "22%",
+        "44%",
+        "56%"
+      ],
+      answer: 1,
+      explanation: "Por apareamiento selectivo, el porcentaje de Citosina es igual al de Guanina (%C = %G = 28%). Sumados equivalen al 56%. El 44% restante corresponde a la suma de Adenina y Timina (100% - 56% = 44%). Como %A = %T, dividimos entre dos: %T = 44% / 2 = 22%."
+    },
+    {
+      topic: "Estructura del ADN y Enlaces",
+      question: "2. ¿Qué tipo de enlace químico mantiene unidas a las bases nitrogenadas complementarias de ambas hebras en la doble hélice de ADN?",
+      options: [
+        "Enlaces fosfodiéster.",
+        "Puentes de hidrógeno.",
+        "Enlaces peptídicos.",
+        "Interacciones glucosídicas."
+      ],
+      answer: 1,
+      explanation: "Mientras que los enlaces fosfodiéster unen los nucleótidos a lo largo de una misma hebra, las dos hebras antiparalelas de la doble hélice se mantienen unidas mediante puentes de hidrógeno débiles entre bases purinas y pirimidinas."
+    },
+    {
+      topic: "Complementariedad y Antiparalelismo",
+      question: "3. Se tiene la secuencia de ADN 5'-A-T-C-G-G-C-T-A-3'. ¿Cuál es su cadena complementaria antiparalela correcta?",
+      options: [
+        "3'-T-A-G-C-C-G-A-T-5'",
+        "5'-T-A-G-C-C-G-A-T-3'",
+        "3'-U-A-G-C-C-G-A-U-5'",
+        "3'-C-G-A-T-T-A-C-G-5'"
+      ],
+      answer: 0,
+      explanation: "El ADN es antiparalelo, por lo que el extremo 5' se complementa con el 3'. Complementando bases (A ↔ T y C ↔ G), a 5'-A-T-C-G-G-C-T-A-3' le corresponde 3'-T-A-G-C-C-G-A-T-5'."
+    },
+    {
+      topic: "Diferencias Químicas ADN vs ARN",
+      question: "4. ¿En qué difieren estructuralmente la pentosa presente en el ADN y la pentosa presente en el ARN?",
+      options: [
+        "El ADN contiene ribosa con seis carbonos y el ARN desoxirribosa con cinco carbonos.",
+        "La desoxirribosa del ADN carece de un átomo de oxígeno en el carbono 2' de su anillo de pentosa.",
+        "La ribosa del ARN carece de un grupo fosfato unido al carbono 5'.",
+        "La desoxirribosa posee un nitrógeno en su anillo pentagonal en lugar de carbono."
+      ],
+      answer: 1,
+      explanation: "La desoxirribosa presente en el ADN posee un átomo de hidrógeno en lugar de un grupo hidroxilo (-OH) en el carbono 2', mientras que la ribosa del ARN conserva dicho grupo -OH."
+    },
+    {
+      topic: "Enzimas de la Replicación",
+      question: "5. ¿Qué enzima se encarga de desenrollar la doble hélice de ADN rompiendo los puentes de hidrógeno durante el proceso de replicación celular?",
+      options: [
+        "ADN ligasa.",
+        "ARN polimerasa.",
+        "Helicasa.",
+        "Topoisomerasa."
+      ],
+      answer: 2,
+      explanation: "La helicasa es la enzima clave que rompe los puentes de hidrógeno entre las bases nitrogenadas, abriendo la horquilla de replicación para que la ADN polimerasa copie las cadenas."
+    },
+    {
+      topic: "Cálculo de Nucleótidos Totales",
+      question: "6. Se determina que una hebra de ADN bicatenario posee 300 moléculas de Guanina y 200 moléculas de Adenina. ¿Cuántos nucleótidos totales conforman dicho fragmento de ADN?",
+      options: [
+        "500 nucleótidos.",
+        "1000 nucleótidos.",
+        "600 nucleótidos.",
+        "1200 nucleótidos."
+      ],
+      answer: 1,
+      explanation: "Si hay 300 Guaninas, también hay 300 Citosinas (300 + 300 = 600). Si hay 200 Adeninas, también hay 200 Timinas (200 + 200 = 400). El total de nucleótidos es 600 + 400 = 1000 nucleótidos."
+    },
+    {
+      topic: "Mecanismo Semiconservativo",
+      question: "7. ¿Por qué se afirma que la replicación del ADN es un proceso de carácter 'semiconservativo'?",
+      options: [
+        "Porque solo se replica el 50% del genoma total durante la interfase.",
+        "Porque cada nueva molécula de ADN conserva una hebra molde original y sintetiza una hebra nueva complementaria.",
+        "Porque una célula hija hereda todo el ADN antiguo y la otra célula hereda ADN completamente nuevo.",
+        "Porque el proceso requiere consumir la mitad de las bases purinas de la célula."
+      ],
+      answer: 1,
+      explanation: "Experimentos clásicos demostraron que en la replicación semiconservativa, cada doble hélice hija conserva una hebra parental intacta que sirve como molde y una hebra hija recién sintetizada."
+    },
+    {
+      topic: "Bases Nitrogenadas Específicas",
+      question: "8. ¿Cuál de las siguientes bases nitrogenadas es una pirimidina exclusiva del ADN que no forma parte del ARN?",
+      options: [
+        "Guanina.",
+        "Uracilo.",
+        "Citosina.",
+        "Timina."
+      ],
+      answer: 3,
+      explanation: "La Timina es una pirimidina específica del ADN. En el ARN, la Timina es reemplazada por el Uracilo."
+    },
+    {
+      topic: "Direccionalidad del ADN",
+      question: "9. En la dirección del sentido de las hebras de ADN, ¿a qué se refieren las notaciones extremos 5' y 3'?",
+      options: [
+        "Al número total de puentes de hidrógeno presentes en la molécula.",
+        "A la posición de los átomos de carbono del anillo de la pentosa donde se unen los grupos fosfato e hidroxilo.",
+        "Al número de bases purinas y pirimidinas presentes en la secuencia.",
+        "Al número de vueltas de la hélice en el espacio celular."
+      ],
+      answer: 1,
+      explanation: "Los extremos 5' y 3' señalan la numeración de los carbonos de la desoxirribosa: el extremo 5' porta un grupo fosfato libre en el carbono 5', mientras que el extremo 3' porta un grupo hidroxilo (-OH) libre en el carbono 3'."
+    },
+    {
+      topic: "Aplicabilidad de Reglas de Chargaff",
+      question: "10. Si se analiza una hebra monocatenaria de ADN sintético y se encuentra que el 40% es Adenina, ¿cuál será el porcentaje de Timina en esa MISMA hebra sencilla?",
+      options: [
+        "Exactamente 40%.",
+        "Exactamente 10%.",
+        "No se puede determinar porque la regla de Chargaff solo aplica a ADN bicatenario.",
+        "Exactamente 60%."
+      ],
+      answer: 2,
+      explanation: "La regla de Chargaff (%A = %T) presupone la existencia de dos cadenas apareadas. En una sola hebra sencilla monocatenaria, las proporciones de bases pueden ser arbitrarias."
+    },
+    {
+      topic: "Tipos de ARN y Funciones",
+      question: "11. ¿Qué tipo de ARN tiene como función específica unirse a aminoácidos libres en el citoplasma y llevarlos hacia el ribosoma durante la traducción?",
+      options: [
+        "ARN mensajero (ARNm).",
+        "ARN de transferencia (ARNt).",
+        "ARN ribosomal (ARNr).",
+        "ARN pequeño nuclear (ARNsn)."
+      ],
+      answer: 1,
+      explanation: "El ARNt posee una estructura en hoja de trébol que acopla un aminoácido específico en su extremo 3' y reconoce el codón del ARNm en el ribosoma mediante su asa del anticodón."
+    },
+    {
+      topic: "Transcripción Genética",
+      question: "12. Durante la transcripción de un gen, una hebra molde de ADN tiene la secuencia 3'-T-A-C-G-A-T-C-T-A-5'. ¿Cuál es la secuencia de la molécula de ARNm transcrita?",
+      options: [
+        "5'-A-U-G-C-U-A-G-A-U-3'",
+        "5'-A-T-G-C-T-A-G-A-T-3'",
+        "3'-A-U-G-C-U-A-G-A-U-5'",
+        "5'-U-A-C-G-A-U-C-U-A-3'"
+      ],
+      answer: 0,
+      explanation: "La ARN polimerasa sintetiza en dirección antiparalela 5' → 3'. El ADN molde 3'-T-A-C-G-A-T-C-T-A-5' genera el ARNm complementario 5'-A-U-G-C-U-A-G-A-U-3' (donde A_ADN → U_ARN y T_ADN → A_ARN)."
+    },
+    {
+      topic: "Código Genético y Codones",
+      question: "13. En la síntesis de proteínas, ¿cuántos nucleótidos consecutivos del ARNm conforman un 'codón' encargado de especificar un aminoácido?",
+      options: [
+        "2 nucleótidos.",
+        "3 nucleótidos.",
+        "4 nucleótidos.",
+        "20 nucleótidos."
+      ],
+      answer: 1,
+      explanation: "El código genético se organiza en tripletes de bases o codones. Cada triplete de tres nucleótidos en el ARNm especifica un aminoácido particular en la cadena polipeptídica."
+    },
+    {
+      topic: "Inhibición Enzimática y Procesos",
+      question: "14. Si se utiliza un fármaco experimental que inhibe de forma selectiva a la enzima ARN Polimerasa en células eucariotas, ¿qué proceso metabólico celular se detendrá inmediatamente?",
+      options: [
+        "La traducción de proteínas en el citoplasma.",
+        "La transcripción de genes para formar ARN.",
+        "La duplicación del ADN celular durante la fase S.",
+        "El empaquetamiento del ADN con proteínas histonas."
+      ],
+      answer: 1,
+      explanation: "La ARN polimerasa es la enzima responsable de leer la hebra molde de ADN y sintetizar una cadena de ARN complementaria en el proceso de transcripción."
+    },
+    {
+      topic: "Reconocimiento Codón-Anticodón",
+      question: "15. Un codón de ARNm en el ribosoma es 5'-G-A-U-3'. ¿Cuál será la secuencia del anticodón complementario presente en el ARNt?",
+      options: [
+        "3'-C-U-A-5'",
+        "3'-C-T-A-5'",
+        "5'-C-U-A-3'",
+        "3'-G-A-U-5'"
+      ],
+      answer: 0,
+      explanation: "El anticodón del ARNt es antiparalelo y complementario al codón del ARNm. Para 5'-G-A-U-3' la secuencia pareada antiparalela es 3'-C-U-A-5'."
+    },
+    {
+      topic: "Propiedades del Código Genético",
+      question: "16. ¿A qué propiedad del código genético se refiere el hecho de que diferentes codones puedan codificar para un mismo aminoácido (por ejemplo, UUU y UUC codifican ambos para Fenilalanina)?",
+      options: [
+        "Ambigüedad.",
+        "Degeneración o redundancia.",
+        "Solapamiento.",
+        "Universalidad restringida."
+      ],
+      answer: 1,
+      explanation: "Se dice que el código genético es 'degenerado' o 'redundante' porque existen 64 codones posibles para solo 20 aminoácidos proteicos, por lo que varios tripletes codifican el mismo aminoácido."
+    },
+    {
+      topic: "Estructura del Ribosoma",
+      question: "17. ¿Qué estructura celular está formada funcionalmente por una combinación de proteínas especializadas y ARN ribosomal (ARNr)?",
+      options: [
+        "El lisosoma.",
+        "El ribosoma.",
+        "El aparato de Golgi.",
+        "El centrosoma."
+      ],
+      answer: 1,
+      explanation: "Los ribosomas son complejos ribonucleoproteicos formados por subunidades grandes y pequeñas compuestas de ARNr y proteínas ribosómicas."
+    },
+    {
+      topic: "Dogma Central y Compartimentos Celulares",
+      question: "18. Durante el Dogma Central de la Biología Molecular, ¿en qué compartimiento de una célula eucariota ocurre el proceso de TRADUCCIÓN?",
+      options: [
+        "Dentro del nucleolo.",
+        "En el citoplasma (asociado a ribosomas libres o al retículo endoplásmico rugoso).",
+        "En la matriz mitocondrial exclusivamente.",
+        "Dentro del espacio perinuclear."
+      ],
+      answer: 1,
+      explanation: "Mientras que la transcripción ocurre dentro del núcleo eucariota, el ARNm procesado sale hacia el citoplasma donde los ribosomas traducen el mensaje a proteína."
+    },
+    {
+      topic: "Mutaciones Genéticas",
+      question: "19. Ocurre una mutación puntual en el ADN por sustitución de una base, cambiando el codón de ARNm 5'-G-U-U-3' por 5'-G-U-C-3'. Si ambos codones especifican el aminoácido Valina, ¿cómo se clasifica esta mutación?",
+      options: [
+        "Mutación de sentido erróneo (missense).",
+        "Mutación silenciosa.",
+        "Mutación sin sentido (nonsense).",
+        "Mutación por cambio de marco de lectura (frameshift)."
+      ],
+      answer: 1,
+      explanation: "Una mutación silenciosa altera la secuencia de nucleótidos del gen, pero debido a la degeneración del código genético, no modifica la secuencia final de aminoácidos de la proteína producida."
+    },
+    {
+      topic: "Codón de Inicio Universal",
+      question: "20. ¿Cuál es la secuencia de inicio estándar (codón de arranque) que señala a los ribosomas el comienzo de la traducción de la mayoría de los ARNm?",
+      options: [
+        "5'-U-A-A-3'",
+        "5'-A-U-G-3' (que codifica para Metionina)",
+        "5'-U-A-G-3'",
+        "5'-U-G-A-3'"
+      ],
+      answer: 1,
+      explanation: "El codón 5'-A-U-G-3' es el codón de inicio universal que establece el marco de lectura en la traducción e inserta el aminoácido Metionina al inicio de la proteína."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions;
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🧬 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Justificación biológica:";
+      feedbackText.innerHTML = "<strong>Fundamento técnico:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🧬 ¡Dominio Absoluto en Biología Molecular!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas las reglas de Chargaff, la estructura de los ácidos nucleicos, replicación, transcripción, traducción y el código genético.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación en biología molecular muy avanzado. Revisa los detalles de direccionalidad y mutaciones para perfeccionar.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos repasar la diferencia entre transcripción y traducción, así como la complementariedad de bases en el ARN.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡No te desanimes! Refuerza los conceptos clave del dogma central de la biología molecular para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>

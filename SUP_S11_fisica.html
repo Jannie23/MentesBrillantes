@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Física: Gases Ideales y Propiedades</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #0369a1 35%, #1e1b4b 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #06b6d4;
+      --pastel-lime: rgba(6, 182, 212, 0.15);
+      --neon-emerald: #38bdf8;
+      --pastel-emerald: rgba(56, 189, 248, 0.15);
+      --neon-cyan: #818cf8;
+      --pastel-cyan: rgba(129, 140, 248, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(6, 182, 212, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #67e8f9;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(6, 182, 212, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(6, 182, 212, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(6, 182, 212, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #22d3ee;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(6, 182, 212, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Física General: Gases Ideales y Propiedades</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Ley de Gay-Lussac (Proceso Isocórico)",
+      question: "1. Un cilindro indeformable contiene un gas ideal a 300 K y una presión de 180 kPa. Si el gas se enfría isocóricamente hasta alcanzar 200 K, ¿cuál será la nueva presión ejercida por el gas?",
+      options: [
+        "120 kPa",
+        "270 kPa",
+        "90 kPa",
+        "150 kPa"
+      ],
+      answer: 0,
+      explanation: "En un proceso isocórico (V = constante), se aplica la Ley de Gay-Lussac: P₁/T₁ = P₂/T₂. Despejando P₂ = P₁ · (T₂/T₁) = 180 kPa · (200 K / 300 K) = 180 · (2/3) = 120 kPa."
+    },
+    {
+      topic: "Ley de Charles (Proceso Isobárico)",
+      question: "2. Un globo aerostático contiene 6.0 L de helio a una temperatura ambiente de 27 °C (300 K). Si la presión permanece constante y la temperatura se incrementa a 127 °C (400 K), ¿cuál es el volumen final que ocupa el globo?",
+      options: [
+        "4.5 L",
+        "8.0 L",
+        "9.0 L",
+        "7.2 L"
+      ],
+      answer: 1,
+      explanation: "A presión constante (P = constante), opera la Ley de Charles: V₁/T₁ = V₂/T₂. Convertimos a Kelvin: T₁ = 27 + 273 = 300 K y T₂ = 127 + 273 = 400 K. Despejando V₂ = V₁ · (T₂/T₁) = 6.0 L · (400 K / 300 K) = 8.0 L."
+    },
+    {
+      topic: "Ecuación de Estado de los Gases Ideales",
+      question: "3. Un depósito sellado de 0.020 m³ de capacidad aloja 4.0 moles de dióxido de carbono a una temperatura de 400 K. Considerando R = 8.314 J/(mol·K), ¿cuál es la presión absoluta del dióxido de carbono?",
+      options: [
+        "665,120 Pa",
+        "166,280 Pa",
+        "332,560 Pa",
+        "831,400 Pa"
+      ],
+      answer: 0,
+      explanation: "Utilizando la Ecuación de Estado PV = nRT, despejamos P: P = (nRT)/V = [(4.0 mol)(8.314 J/(mol·K))(400 K)] / 0.020 m³ = 13302.4 / 0.020 = 665,120 Pa."
+    },
+    {
+      topic: "Ley de Boyle (Proceso Isotérmico)",
+      question: "4. Un neumático se infla a una presión de 250 kPa ocupando un volumen de 12 L a temperatura constante. Si el gas se expande hasta ocupar un volumen de 15 L, ¿cuál es la nueva presión del gas?",
+      options: [
+        "312.5 kPa",
+        "200.0 kPa",
+        "180.0 kPa",
+        "150.0 kPa"
+      ],
+      answer: 1,
+      explanation: "Al ser un proceso isotérmico (T = constante), se aplica la Ley de Boyle: P₁V₁ = P₂V₂. Despejando P₂ = (P₁V₁)/V₂ = (250 kPa · 12 L) / 15 L = 3000 / 15 = 200 kPa."
+    },
+    {
+      topic: "Cantidad de Sustancia en Gases Ideales",
+      question: "5. ¿Cuántos moles de un gas ideal están contenidos en un recipiente de 0.010 m³ a una presión de 249,420 Pa y una temperatura de 300 K? (R = 8.314 J/(mol·K)).",
+      options: [
+        "1.0 mol",
+        "2.0 moles",
+        "0.5 moles",
+        "3.0 moles"
+      ],
+      answer: 0,
+      explanation: "De la ecuación PV = nRT despejamos n = (PV)/(RT). Sustituyendo valores: n = [(249420 Pa)(0.010 m³)] / [(8.314 J/(mol·K))(300 K)] = 2494.2 / 2494.2 = 1.0 mol."
+    },
+    {
+      topic: "Relaciones Proporcionales en Gases",
+      question: "6. Si se duplica la temperatura absoluta de un gas ideal encerrado en un recipiente rígido mientras la masa se mantiene constante, ¿qué sucede con la presión del gas?",
+      options: [
+        "Se reduce a la mitad.",
+        "Se cuadruplica.",
+        "Permanece constante.",
+        "Se duplica."
+      ],
+      answer: 3,
+      explanation: "Según la Ley de Gay-Lussac (P/T = constante), la presión y la temperatura absoluta son directamente proporcionales a volumen constante. Si T₂ = 2T₁, la presión resultante será P₂ = 2P₁."
+    },
+    {
+      topic: "Ley de Charles y Escala Absoluta",
+      question: "7. Una muestra de gas nitrógeno ocupa un volumen de 500 mL a 100 kPa y 250 K. ¿A qué temperatura en Kelvin debe someterse para que su volumen se reduzca a 250 mL manteniendo la presión en 100 kPa?",
+      options: [
+        "500 K",
+        "125 K",
+        "200 K",
+        "375 K"
+      ],
+      answer: 1,
+      explanation: "A presión constante, aplicando la Ley de Charles: V₁/T₁ = V₂/T₂ ⇒ T₂ = T₁ · (V₂/V₁) = (250 K) · (250 mL / 500 mL) = 250 · 0.5 = 125 K."
+    },
+    {
+      topic: "Modelo del Gas Ideal",
+      question: "8. ¿Qué condición microscópica caracteriza conceptualmente al modelo del gas ideal?",
+      options: [
+        "Las fuerzas de atracción intermoleculares son sumamente intensas.",
+        "Las colisiones entre las moléculas son inelásticas con pérdida de energía cinética.",
+        "El volumen de las moléculas es despreciable comparado con el volumen del recipiente y las fuerzas de interacción intermolecular son nulas.",
+        "Las moléculas están organizadas en una red cristalina rígida."
+      ],
+      answer: 2,
+      explanation: "El modelo teórico del gas ideal asume que las partículas son puntuales (volumen propio nulo) y no ejercen interacciones de atracción ni repulsión a distancia."
+    },
+    {
+      topic: "Ley Combinada de los Gases",
+      question: "9. Un gas encerrado en un pistón se somete a una variación de variables según la Ley Combinada. Si la presión inicial de 100 kPa se triplica y el volumen inicial de 6 L se reduce a 2 L, ¿cómo cambia la temperatura absoluta del gas?",
+      options: [
+        "La temperatura absoluta se triplica.",
+        "La temperatura absoluta se reduce a la tercera parte.",
+        "La temperatura absoluta permanece inalterada (T₂ = T₁).",
+        "La temperatura absoluta se multiplica por 6."
+      ],
+      answer: 2,
+      explanation: "De la ley combinada (P₁V₁)/T₁ = (P₂V₂)/T₂, el producto inicial es P₁V₁ = (100)(6) = 600. El producto final es P₂V₂ = (300)(2) = 600. Como P₁V₁ = P₂V₂, entonces T₂ = T₁."
+    },
+    {
+      topic: "Relaciones Variables de Estado",
+      question: "10. Un recipiente a 300 K contiene gas a una presión P₁. Si la temperatura absoluta aumenta a 450 K y el volumen se duplica, ¿cuál será la nueva presión P₂ en términos de P₁?",
+      options: [
+        "P₂ = 0.75 P₁",
+        "P₂ = 1.50 P₁",
+        "P₂ = 3.00 P₁",
+        "P₂ = 0.50 P₁"
+      ],
+      answer: 0,
+      explanation: "Aplicando (P₁V₁)/T₁ = (P₂V₂)/T₂ ⇒ P₂ = P₁ · (V₁/V₂) · (T₂/T₁). Sustituyendo V₂ = 2V₁ y T₂ = 450 K: P₂ = P₁ · (1/2) · (450/300) = P₁ · (0.5) · (1.5) = 0.75 P₁."
+    },
+    {
+      topic: "Densidad y Conversión de Unidades",
+      question: "11. Una muestra de aceite mineral tiene una masa de 450 g y ocupa un volumen de 500 cm³. ¿Cuál es la densidad del aceite mineral en g/cm³ y su equivalente en el SI (kg/m³)?",
+      options: [
+        "0.90 g/cm³ y 900 kg/m³",
+        "1.11 g/cm³ y 1110 kg/m³",
+        "0.90 g/cm³ y 90 kg/m³",
+        "0.45 g/cm³ y 450 kg/m³"
+      ],
+      answer: 0,
+      explanation: "La densidad es d = m/V = 450 g / 500 cm³ = 0.90 g/cm³. Para convertir a kg/m³ se multiplica por 1000: 0.90 × 1000 = 900 kg/m³."
+    },
+    {
+      topic: "Escalamiento Geométrico y Masa (Esferas)",
+      question: "12. Se tienen dos esferas homogéneas A y B compuestas del mismo material. La esfera B tiene un radio r_B que equivale a la mitad del radio r_A de la esfera A (r_B = 0.5 r_A). ¿Cuál es la relación entre la masa de la esfera B y la masa de la esfera A?",
+      options: [
+        "m_B = 0.5 m_A",
+        "m_B = 0.25 m_A",
+        "m_B = 0.125 m_A",
+        "m_B = 0.0625 m_A"
+      ],
+      answer: 2,
+      explanation: "El volumen de una esfera varía linealmente con el cubo de su radio (V ∝ r³). Como la densidad es constante (m ∝ V), la masa varía con el cubo del radio: m_B = (0.5)³ m_A = 0.125 m_A = (1/8) m_A."
+    },
+    {
+      topic: "Masa de Cuerpos Macizos",
+      question: "13. Un bloque rectilíneo de hierro macizo (densidad d = 7.8 g/cm³) posee unas dimensiones de 5 cm × 4 cm × 10 cm. Calcule la masa total del bloque de hierro.",
+      options: [
+        "1560 g",
+        "780 g",
+        "200 g",
+        "1170 g"
+      ],
+      answer: 0,
+      explanation: "El volumen del bloque es V = 5 × 4 × 10 = 200 cm³. Usando m = d · V ⇒ m = (7.8 g/cm³)(200 cm³) = 1560 g (1.56 kg)."
+    },
+    {
+      topic: "Escalamiento Cubico de Volumen",
+      question: "14. Dos cubos sólidos X e Y están fabricados con cobre macizo. El cubo Y tiene una longitud de arista L_Y cuatro veces mayor que la arista L_X del cubo X (L_Y = 4 L_X). Si el volumen del cubo X es 10 cm³, ¿cuál es el volumen del cubo Y?",
+      options: [
+        "40 cm³",
+        "160 cm³",
+        "640 cm³",
+        "320 cm³"
+      ],
+      answer: 2,
+      explanation: "El volumen de un cubo depende de la tercera potencia de su arista (V = L³). Si la arista se multiplica por k = 4, el volumen se multiplica por k³ = 4³ = 64. Por ende, V_Y = 64 × 10 cm³ = 640 cm³."
+    },
+    {
+      topic: "Medición con Picnómetro",
+      question: "15. Un picnómetro lleno con 200 mL de un líquido desconocido registra una masa neta de dicho líquido igual a 160 g. ¿Cuál es la densidad de esta sustancia?",
+      options: [
+        "1.25 g/cm³",
+        "0.80 g/cm³",
+        "0.64 g/cm³",
+        "1.60 g/cm³"
+      ],
+      answer: 1,
+      explanation: "Sabiendo que 1 mL = 1 cm³, el volumen es 200 cm³. Aplicando la fórmula de densidad: d = m/V = 160 g / 200 cm³ = 0.80 g/cm³."
+    },
+    {
+      topic: "Escalamiento Volumétrico Cilindros",
+      question: "16. Si se tiene un cilindro macizo de aluminio de masa M₁ y radio R₁. Se construye un segundo cilindro macizo de aluminio con el doble de radio (R₂ = 2 R₁) y la misma altura. ¿Cómo se relaciona la masa del segundo cilindro M₂ con M₁?",
+      options: [
+        "M₂ = 2 M₁",
+        "M₂ = 4 M₁",
+        "M₂ = 8 M₁",
+        "M₂ = 6 M₁"
+      ],
+      answer: 1,
+      explanation: "El volumen de un cilindro es V = π r² h. A altura constante h, el volumen es directamente proporcional al cuadrado del radio (V ∝ r²). Al duplicar el radio (k = 2), el volumen y la masa aumentan por un factor de 2² = 4. Así, M₂ = 4 M₁."
+    },
+    {
+      topic: "Despeje de Volumen por Densidad",
+      question: "17. ¿Qué volumen en metros cúbicos (m³) ocupa un cuerpo macizo de plomo cuya masa es de 5670 kg, sabiendo que la densidad del plomo es 11,340 kg/m³?",
+      options: [
+        "2.0 m³",
+        "0.5 m³",
+        "0.25 m³",
+        "1.5 m³"
+      ],
+      answer: 1,
+      explanation: "Despejando el volumen de la definición de densidad d = m/V ⇒ V = m/d. Sustituyendo: V = 5670 kg / (11340 kg/m³) = 0.5 m³."
+    },
+    {
+      topic: "Escalamiento de Masa Cúbica",
+      question: "18. Una esfera A de plástico homogéneo tiene una masa de 100 g. Una esfera B del mismo plástico se fabrica con el triple del radio que A (r_B = 3 r_A). ¿Cuál es la masa de la esfera B?",
+      options: [
+        "300 g",
+        "900 g",
+        "2700 g",
+        "8100 g"
+      ],
+      answer: 2,
+      explanation: "Para esferas del mismo material, la masa escala proporcionalmente con el cubo del radio (m ∝ r³). Con un factor de escala lineal k = 3, el factor volumétrico y de masa es k³ = 3³ = 27. Por lo tanto, m_B = 27 × 100 g = 2700 g."
+    },
+    {
+      topic: "Naturaleza Física de la Densidad",
+      question: "19. ¿Cuál de las siguientes afirmaciones describe de forma correcta la naturaleza física de la densidad de una sustancia pura homogénea?",
+      options: [
+        "Es una propiedad extensiva que aumenta al duplicar la masa de la muestra.",
+        "Es una propiedad intensiva que permanece constante independientemente de la cantidad de masa o tamaño del cuerpo analizado.",
+        "Es una propiedad variable que disminuye directamente proporcional a la masa del cuerpo.",
+        "Depende únicamente de la aceleración de la gravedad del lugar."
+      ],
+      answer: 1,
+      explanation: "La densidad es una propiedad intensiva de la materia, lo que significa que no depende de la cantidad de materia examinada; al aumentar la masa de un objeto homogéneo, su volumen aumenta en la misma proporción, manteniendo el cociente d = m/V constante."
+    },
+    {
+      topic: "Método de Desplazamiento de Volumen",
+      question: "20. Se introduce una piedra irregular de 150 g en una probeta graduada que contiene inicialmente 100 mL de agua. Tras sumergir la piedra, el nivel del agua asciende hasta marcar 160 mL. ¿Cuál es la densidad de la piedra?",
+      options: [
+        "2.50 g/cm³",
+        "0.9375 g/cm³",
+        "1.50 g/cm³",
+        "2.00 g/cm³"
+      ],
+      answer: 0,
+      explanation: "El volumen de la piedra equivale al volumen de agua desplazado: V = 160 mL - 100 mL = 60 mL = 60 cm³. Calculando la densidad: d = m/V = 150 g / 60 cm³ = 2.50 g/cm³."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions;
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "⚛️ ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Justificación física:";
+      feedbackText.innerHTML = "<strong>Fundamento técnico:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "⚡ ¡Dominio Absoluto en Gases y Densidad!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas las leyes de los gases (Boyle, Charles, Gay-Lussac, PV=nRT) y las propiedades intensivas como la densidad y el escalamiento geométrico.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación en física muy avanzado. Revisa los detalles de escalamiento volumétrico para perfeccionar tus razonamientos.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos repasar la conversión de unidades (g/cm³ a kg/m³) y la ley combinada de los gases.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡No te desanimes! Refuerza las fórmulas de gases ideales y el concepto de densidad como propiedad intensiva para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>

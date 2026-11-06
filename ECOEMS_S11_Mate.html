@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Matemáticas: Estadística y Gráficas</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a8a 35%, #1e1b4b 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #f59e0b;
+      --pastel-lime: rgba(245, 158, 11, 0.15);
+      --neon-emerald: #3b82f6;
+      --pastel-emerald: rgba(59, 130, 246, 0.15);
+      --neon-cyan: #60a5fa;
+      --pastel-cyan: rgba(96, 165, 250, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(245, 158, 11, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #fde68a;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(245, 158, 11, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #fde68a;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Matemáticas: Estadística y Gráficas</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Media Aritmética",
+      question: "1. El número de consultas diarias atendidas en una clínica durante seis días fue: 14, 16, 18, 18, 20, 22. ¿Cuál es la media aritmética de consultas diarias?",
+      options: [
+        "17.5",
+        "18.0",
+        "18.5",
+        "19.0"
+      ],
+      answer: 1,
+      explanation: "Sumando las consultas de los 6 días: 14 + 16 + 18 + 18 + 20 + 22 = 108. Dividiendo entre 6: x̄ = 108 / 6 = 18.0."
+    },
+    {
+      topic: "Mediana Estadísticas",
+      question: "2. Los tiempos de espera en minutos de siete pacientes fueron: 19, 25, 14, 30, 22, 17, 28. ¿Cuál es la mediana del tiempo de espera?",
+      options: [
+        "20 min",
+        "22 min",
+        "25 min",
+        "21 min"
+      ],
+      answer: 1,
+      explanation: "Ordenando los 7 datos de menor a mayor: 14, 17, 19, 22, 25, 28, 30. Como n = 7 (impar), la mediana es el dato en la cuarta posición: Me = 22."
+    },
+    {
+      topic: "Frecuencia Relativa",
+      question: "3. En una muestra de 150 estudiantes, 45 eligen desplazarse a la escuela caminando. ¿Cuál es la frecuencia relativa de los estudiantes que caminan?",
+      options: [
+        "0.45",
+        "0.30",
+        "0.25",
+        "0.35"
+      ],
+      answer: 1,
+      explanation: "La frecuencia relativa es fr = f / n = 45 / 150 = 0.30."
+    },
+    {
+      topic: "Porcentaje de Incremento",
+      question: "4. El índice de producción de una fábrica era de 150 puntos en el primer trimestre y subió a 165 puntos en el segundo trimestre. ¿Cuál fue el porcentaje de incremento del índice?",
+      options: [
+        "10%",
+        "15%",
+        "12%",
+        "8%"
+      ],
+      answer: 0,
+      explanation: "Aplicando la fórmula de incremento porcentual: [(165 - 150) / 150] × 100% = (15 / 150) × 100% = 0.10 × 100% = 10%."
+    },
+    {
+      topic: "Cálculo de Números Índice",
+      question: "5. Se registra la asistencia a un club de lectura durante cuatro semanas: Semana 1 (60), Semana 2 (75), Semana 3 (90), Semana 4 (105). Si la Semana 1 es la base 100, ¿cuál es el índice correspondiente a la Semana 3?",
+      options: [
+        "130",
+        "140",
+        "150",
+        "125"
+      ],
+      answer: 2,
+      explanation: "Con la Semana 1 como base (60 personas = 100), el índice de la Semana 3 se calcula dividiendo la cantidad de la Semana 3 entre la cantidad base y multiplicando por 100: Índice₃ = (90 / 60) × 100 = 1.50 × 100 = 150."
+    },
+    {
+      topic: "Elegibilidad de Medidas de Tendencia Central",
+      question: "6. Los precios de seis modelos de computadoras son: $9,500, $9,800, $10,000, $10,200, $10,500 y $65,000. ¿Qué medida de tendencia central describe de forma más representativa el costo típico de una computadora en esta tienda?",
+      options: [
+        "La media aritmética.",
+        "La mediana.",
+        "El rango medio.",
+        "La moda."
+      ],
+      answer: 1,
+      explanation: "El valor atípico de $65,000 eleva la media a $19,166.66, distorsionando el promedio. La mediana ($10,100) es resistente a valores extremos y representa mejor el costo típico."
+    },
+    {
+      topic: "Variación Porcentual",
+      question: "7. Si el índice de ventas de una empresa era 200 en 2022 y bajó a 170 en 2023, ¿cuál fue la variación porcentual de las ventas?",
+      options: [
+        "Disminución del 15%",
+        "Disminución del 30%",
+        "Disminución del 17%",
+        "Disminución del 20%"
+      ],
+      answer: 0,
+      explanation: "Variación porcentual: [(170 - 200) / 200] × 100% = (-30 / 200) × 100% = -0.15 × 100% = -15%. Corresponde a una disminución del 15%."
+    },
+    {
+      topic: "Índice de Base Fija",
+      question: "8. La producción de trigo en toneladas durante 4 años fue: Año 1 (400), Año 2 (440), Año 3 (500), Año 4 (560). Con el Año 1 como base 100, ¿cuál es el índice del Año 4?",
+      options: [
+        "130",
+        "140",
+        "150",
+        "160"
+      ],
+      answer: 1,
+      explanation: "Tomando el Año 1 (400) como base 100: Índice₄ = (560 / 400) × 100 = 1.40 × 100 = 140."
+    },
+    {
+      topic: "Moda Estadística",
+      question: "9. En un examen de 10 preguntas, ocho alumnos obtuvieron los siguientes aciertos: 5, 6, 6, 7, 8, 8, 8, 10. ¿Cuál es la moda de los aciertos?",
+      options: [
+        "6",
+        "7",
+        "8",
+        "7.25"
+      ],
+      answer: 2,
+      explanation: "La moda es la puntuación que se repite con mayor frecuencia. El valor 8 aparece tres veces en el conjunto de datos."
+    },
+    {
+      topic: "Incremento de Puntos de Índice",
+      question: "10. El índice del costo de transporte pasó de 110 a 121 puntos en un año. ¿Cuál fue el incremento porcentual del costo?",
+      options: [
+        "11%",
+        "10%",
+        "12%",
+        "9%"
+      ],
+      answer: 1,
+      explanation: "Incremento % = [(121 - 110) / 110] × 100% = (11 / 110) × 100% = 0.10 × 100% = 10%."
+    },
+    {
+      topic: "Gráfica Circular y Frecuencias",
+      question: "11. En una gráfica circular que representa el consumo de 300 familias, el sector 'Gas natural' tiene un ángulo central de 108°. ¿Cuántas familias utilizan gas natural?",
+      options: [
+        "90 familias",
+        "108 familias",
+        "80 familias",
+        "100 familias"
+      ],
+      answer: 0,
+      explanation: "Calculamos la cantidad mediante la fórmula f = n × (θ / 360°) = 300 × (108° / 360°) = 300 × 0.30 = 90 familias."
+    },
+    {
+      topic: "Conversión de Datos a Ángulos (Sectores)",
+      question: "12. Una encuesta a 180 personas muestra la preferencia por cuatro deportes: Fútbol (60), Baloncesto (45), Voleibol (30) y Natación (45). ¿Qué ángulo le corresponde al sector de Baloncesto en una gráfica circular?",
+      options: [
+        "90°",
+        "120°",
+        "60°",
+        "75°"
+      ],
+      answer: 0,
+      explanation: "El ángulo del sector de Baloncesto es θ = 360° × (f / n) = 360° × (45 / 180) = 360° × 0.25 = 90°."
+    },
+    {
+      topic: "Porcentaje en Gráficas de Barras",
+      question: "13. En una gráfica de barras de ventas mensuales por sucursal, las ventas son: Sucursal A ($30,000), Sucursal B ($50,000), Sucursal C ($40,000) y Sucursal D ($80,000). ¿Qué porcentaje del total de ventas aporta la Sucursal B?",
+      options: [
+        "20%",
+        "25%",
+        "30%",
+        "35%"
+      ],
+      answer: 1,
+      explanation: "La suma total de ventas es 30,000 + 50,000 + 40,000 + 80,000 = $200,000. El porcentaje de la Sucursal B es (50,000 / 200,000) × 100% = 0.25 × 100% = 25%."
+    },
+    {
+      topic: "Interpretación Crítica de Gráficas",
+      question: "14. Una revista publica una gráfica de barras para comparar los ingresos de dos empresas. La barra de la Empresa X mide 8 cm de alto y representa $104,000. La barra de la Empresa Y mide 2 cm de alto y representa $100,000. ¿A qué se debe esta enorme discrepancia visual?",
+      options: [
+        "A que el eje vertical se inició en $99,000 en lugar de iniciar en $0.",
+        "A que se utilizó un gráfico circular sin convertir los datos a grados.",
+        "A que la Empresa Y reportó ingresos en moneda extranjera.",
+        "A un error en el cálculo de la media de ingresos."
+      ],
+      answer: 0,
+      explanation: "Al truncar o cortar el eje vertical (iniciar en $99,000 en vez de cero), una pequeña diferencia real de $4,000 (4%) se amplifica visualmente a una proporción de 4 a 1 (8 cm vs 2 cm), creando una gráfica engañosa."
+    },
+    {
+      topic: "Frecuencia Absoluta desde Gráfica Circular",
+      question: "15. Un diagrama de sectores muestra la distribución de 400 estudiantes en actividades extraescolares. El sector de 'Música' abarca un ángulo de 54°. ¿Cuántos estudiantes están inscritos en Música?",
+      options: [
+        "50 estudiantes",
+        "60 estudiantes",
+        "54 estudiantes",
+        "70 estudiantes"
+      ],
+      answer: 1,
+      explanation: "f = n × (θ / 360°) = 400 × (54° / 360°) = 400 × 0.15 = 60 estudiantes."
+    },
+    {
+      topic: "Proporciones en Barras",
+      question: "16. Se representan las ventas de cuatro artículos en una gráfica de barras: Artículo W (50), Artículo X (70), Artículo Y (80), Artículo Z (100). ¿Qué porcentaje del total de unidades vendidas corresponde al Artículo Y?",
+      options: [
+        "26.7%",
+        "30.0%",
+        "25.0%",
+        "33.3%"
+      ],
+      answer: 0,
+      explanation: "El total de unidades es N = 50 + 70 + 80 + 100 = 300. El porcentaje del Artículo Y es (80 / 300) × 100% = (4 / 15) × 100% ≈ 26.67% ≈ 26.7%."
+    },
+    {
+      topic: "Cálculo de Población por Ángulo Central",
+      question: "17. Un grupo de 500 encuestados responde sobre su red social favorita. Si el sector 'Red B' en una gráfica circular mide 144°, ¿cuál es la frecuencia absoluta de personas que prefieren la Red B?",
+      options: [
+        "180 personas",
+        "200 personas",
+        "150 personas",
+        "220 personas"
+      ],
+      answer: 1,
+      explanation: "f = n × (θ / 360°) = 500 × (144° / 360°) = 500 × 0.40 = 200 personas."
+    },
+    {
+      topic: "Ángulo Complementario y Porcentaje",
+      question: "18. En un gráfico circular de tres categorías (A, B y C), el sector A mide 120° y el sector B mide 150°. ¿Qué porcentaje del total representa la categoría C?",
+      options: [
+        "25.0%",
+        "20.0%",
+        "30.0%",
+        "22.5%"
+      ],
+      answer: 0,
+      explanation: "El ángulo del sector C es 360° - (120° + 150°) = 360° - 270° = 90°. El porcentaje que representa es (90° / 360°) × 100% = 0.25 × 100% = 25.0%."
+    },
+    {
+      topic: "Actualización de Índice con Porcentaje",
+      question: "19. Si una empresa reporta que su índice de ventas subió un 20% con respecto al año base (donde el índice era 100), ¿cuál es el nuevo valor del índice?",
+      options: [
+        "105",
+        "120",
+        "140",
+        "110"
+      ],
+      answer: 1,
+      explanation: "Si el año base tiene un valor de 100 puntos, un incremento del 20% equivale a añadir 20 puntos al valor base: 100 + (100 × 0.20) = 120."
+    },
+    {
+      topic: "Conversión de Producción Total a Grados",
+      question: "20. Una gráfica de barras compara la producción de cuatro fábricas: F1 (120), F2 (180), F3 (150), F4 (150). ¿Qué ángulo le correspondería a la fábrica F2 si estos mismos datos se representaran en una gráfica circular?",
+      options: [
+        "108°",
+        "90°",
+        "120°",
+        "135°"
+      ],
+      answer: 0,
+      explanation: "La suma total de producción es n = 120 + 180 + 150 + 150 = 600. El ángulo para F2 es θ = 360° × (180 / 600) = 360° × 0.30 = 108°."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions;
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "📊 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Solución paso a paso:";
+      feedbackText.innerHTML = "<strong>Demostración matemática:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "📈 ¡Dominio Total en Estadística y Gráficas!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas las medidas de tendencia central, frecuencias relativas, conversión a grados para sectores circulares e interpretación analítica de gráficas.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación matemática muy avanzado. Revisa detalladamente las fórmulas de sectores circulares para afinar los últimos detalles.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por muy buen camino. Te sugerimos repasar la diferencia entre la media y la mediana cuando existen valores atípicos, así como los cálculos con números índice.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡No te desanimes! Refuerza el cálculo de porcentajes, variaciones y conversion de ángulos en gráficos circulares para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>

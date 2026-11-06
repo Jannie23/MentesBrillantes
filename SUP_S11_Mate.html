@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Precálculo: Funciones y Asíntotas</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #311042 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #38bdf8;
+      --pastel-lime: rgba(56, 189, 248, 0.15);
+      --neon-emerald: #818cf8;
+      --pastel-emerald: rgba(129, 140, 248, 0.15);
+      --neon-cyan: #c084fc;
+      --pastel-cyan: rgba(192, 132, 252, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #93c5fd;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(56, 189, 248, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #7dd3fc;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(129, 140, 248, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Precálculo: Funciones y Asíntotas</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Funciones Logarítmicas",
+      question: "1. ¿Cuál es el dominio de la función logarítmica f(x) = log₅(x - 7)?",
+      options: [
+        "(-∞, 7)",
+        "(7, 00)",
+        "(7, ∞)",
+        "(-∞, ∞)"
+      ],
+      answer: 2,
+      explanation: "El argumento de una función logarítmica debe ser estrictamente positivo. Se plantea x - 7 > 0, de donde se despeja x > 7. Por lo tanto, el dominio es el intervalo (7, ∞)."
+    },
+    {
+      topic: "Funciones Exponenciales",
+      question: "2. Determine la asíntota horizontal de la función exponencial g(x) = 4^(x+3) - 6.",
+      options: [
+        "y = -6",
+        "y = 6",
+        "x = -3",
+        "y = 4"
+      ],
+      answer: 0,
+      explanation: "En la función exponencial de la forma y = a^(x-h) + k, el término constante k representa la asíntota horizontal. Cuando x → -∞, 4^(x+3) → 0, de modo que y → -6."
+    },
+    {
+      topic: "Modelos Exponenciales y Rango",
+      question: "3. Para la función de crecimiento poblacional P(t) = 300(2)^(t/5) definida para un tiempo t ≥ 0, ¿cuál es el rango de la función?",
+      options: [
+        "(0, ∞)",
+        "[300, ∞)",
+        "(300, ∞)",
+        "[0, ∞)"
+      ],
+      answer: 1,
+      explanation: "Como el tiempo t está restringido a t ≥ 0, evaluamos el valor inicial en t = 0: P(0) = 300(2)⁰ = 300. Dado que la base 2 > 1, la función crece de forma monótona hacia el infinito. Por lo tanto, el rango es [300, ∞)."
+    },
+    {
+      topic: "Asíntotas de Funciones Logarítmicas",
+      question: "4. ¿Cuál es la asíntota vertical de la función h(x) = log₃(2x - 10) + 4?",
+      options: [
+        "x = 10",
+        "x = 4",
+        "x = 5",
+        "y = 5"
+      ],
+      answer: 2,
+      explanation: "La asíntota vertical se ubica en el valor donde el argumento del logaritmo es igual a cero. Se resuelve 2x - 10 = 0 ⇒ 2x = 10 ⇒ x = 5."
+    },
+    {
+      topic: "Comparación de Asíntotas",
+      question: "5. Respecto a las asíntotas de las funciones f(x) = tan(2x) y g(x) = log₂(x + 4), ¿cuál de las siguientes afirmaciones es correcta?",
+      options: [
+        "Ambas funciones tienen únicamente una asíntota vertical.",
+        "f(x) tiene infinitas asíntotas verticales mientras que g(x) tiene solo una asíntota vertical en x = -4.",
+        "f(x) tiene asíntotas horizontales y g(x) tiene asíntotas verticales.",
+        "Ambas funciones carecen de asíntotas en sus dominios."
+      ],
+      answer: 1,
+      explanation: "Las funciones trigonométricas como la tangente poseen periodicidad y presentan infinitas asíntotas verticales (en 2x = π/2 + kπ). En cambio, la función logarítmica estándar tiene una única asíntota en el límite de su dominio, que es x + 4 = 0 ⇒ x = -4."
+    },
+    {
+      topic: "Rango de Funciones Exponenciales Reflejadas",
+      question: "6. ¿Cuál es el rango de la función exponencial reflejada g(x) = 7 - 3^(x-2)?",
+      options: [
+        "(7, ∞)",
+        "(-∞, 7]",
+        "(-∞, 7)",
+        "(18, ∞)"
+      ],
+      answer: 2,
+      explanation: "La asíntota horizontal está en y = 7. Debido al signo menos que antecede al término exponencial 3^(x-2), la función adopta valores estrictamente menores a la asíntota (3^(x-2) > 0 ⇒ -3^(x-2) < 0 ⇒ 7 - 3^(x-2) < 7). Por ello, el rango es (-∞, 7)."
+    },
+    {
+      topic: "Parámetros en Funciones Logarítmicas",
+      question: "7. Una función logarítmica de la forma f(x) = log₃(x - a) + b tiene su asíntota vertical en x = 2 y su gráfica pasa por el punto (5,3). Determine los valores de las constantes a y b.",
+      options: [
+        "a = 2, b = 2",
+        "a = 2, b = 3",
+        "a = 3, b = 2",
+        "a = 2, b = 1"
+      ],
+      answer: 0,
+      explanation: "La asíntota vertical x = 2 determina que a = 2. Sustituyendo a = 2 y el punto (5,3) en la función: 3 = log₃(5 - 2) + b ⇒ 3 = log₃(3) + b ⇒ 3 = 1 + b ⇒ b = 2. Así, a = 2 y b = 2."
+    },
+    {
+      topic: "Dominio de Funciones Logarítmicas",
+      question: "8. Determine el dominio de la función f(x) = log₄(12 - 3x).",
+      options: [
+        "(-∞, 4)",
+        "(4, ∞)",
+        "(-∞, 12)",
+        "(-∞, -4)"
+      ],
+      answer: 0,
+      explanation: "Se resuelve la desigualdad del argumento: 12 - 3x > 0 ⇒ 12 > 3x ⇒ 4 > x, lo cual es equivalente a x < 4. Por tanto, el dominio es el intervalo (-∞, 4)."
+    },
+    {
+      topic: "Asíntotas Horizontales Exponenciales",
+      question: "9. ¿Cuál es la asíntota horizontal de la función f(x) = 2(5)⁻ˣ + 8?",
+      options: [
+        "y = 2",
+        "y = 5",
+        "y = 8",
+        "x = 8"
+      ],
+      answer: 2,
+      explanation: "Cuando x → ∞, 5⁻ˣ = 1/(5ˣ) → 0. Por consiguiente, f(x) → 2(0) + 8 = 8. La recta y = 8 es la asíntota horizontal de la función."
+    },
+    {
+      topic: "Asíntotas en Funciones Trigonométricas",
+      question: "10. ¿En qué valores de x dentro del intervalo [0, π] presenta asíntotas verticales la función trigonométrica f(x) = tan(x - π/4)?",
+      options: [
+        "x = π/4 y x = 3π/4",
+        "x = 3π/4",
+        "x = π/2",
+        "x = 0 y x = π"
+      ],
+      answer: 1,
+      explanation: "Las asíntotas de la tangente se obtienen igualando su argumento a π/2 + kπ. Se plantea x - π/4 = π/2 + kπ ⇒ x = 3π/4 + kπ. Para k = 0, se obtiene la asíntota x = 3π/4, la cual pertenece al intervalo [0, π]."
+    },
+    {
+      topic: "Análisis de Funciones Exponenciales Negativas",
+      question: "11. Considere la función exponencial h(x) = -2^(x+1) - 3. ¿Cuál es el rango y la asíntota horizontal de h(x)?",
+      options: [
+        "Asíntota y = -3, Rango (-∞, -3)",
+        "Asíntota y = -3, Rango (-3, ∞)",
+        "Asíntota y = 3, Rango (-∞, 3)",
+        "Asíntota y = -1, Rango (-∞, -3)"
+      ],
+      answer: 0,
+      explanation: "El término constante determina la asíntota horizontal y = -3. Puesto que el coeficiente que multiplica a la potencia es -1 < 0, la curva se proyecta hacia abajo de la asíntota, lo que resulta en el rango (-∞, -3)."
+    },
+    {
+      topic: "Dominio de Logaritmos con Argumentos Cuadráticos",
+      question: "12. ¿Cuál es el dominio de la función g(x) = log₂(x² - 9)?",
+      options: [
+        "(3, ∞)",
+        "(-∞, -3) ∪ (3, ∞)",
+        "(-3, 3)",
+        "(-∞, 9)"
+      ],
+      answer: 1,
+      explanation: "El argumento debe cumplir x² - 9 > 0 ⇒ (x - 3)(x + 3) > 0. Resolviendo la desigualdad cuadrática, la expresión es positiva cuando x < -3 o x > 3. El dominio es (-∞, -3) ∪ (3, ∞)."
+    },
+    {
+      topic: "Modelos de Decaimiento Radiactivo",
+      question: "13. Una sustancia radiactiva decrece según el modelo M(t) = 80(1/2)^(t/10), con t ≥ 0 medido en años. ¿Cuál es el rango de la masa remanente M(t)?",
+      options: [
+        "(0, 80]",
+        "[0, 80]",
+        "(0, ∞)",
+        "(80, ∞)"
+      ],
+      answer: 0,
+      explanation: "En t = 0, la masa inicial es M(0) = 80(1) = 80. A medida que t → ∞, M(t) se aproxima a 0 pero nunca llega a valer exactamente cero. Por lo tanto, la cantidad permanece estrictamente mayor que cero y menor o igual a 80. El rango es (0, 80]."
+    },
+    {
+      topic: "Asíntota Vertical de Logaritmo Natural",
+      question: "14. ¿Cuál es la asíntota vertical de la función f(x) = ln(5 - 2x)?",
+      options: [
+        "x = 2/5",
+        "x = -5/2",
+        "x = 5/2",
+        "y = 5/2"
+      ],
+      answer: 2,
+      explanation: "El logaritmo natural ln(u) se indefine cuando u = 0. Se plantea la ecuación 5 - 2x = 0 ⇒ 2x = 5 ⇒ x = 5/2."
+    },
+    {
+      topic: "Intersecciones con los Ejes",
+      question: "15. Dada la función g(x) = 3^(x-4) + 1, ¿en qué punto corta su gráfica al eje Y?",
+      options: [
+        "(0, 1)",
+        "(0, 82/81)",
+        "(0, 82)",
+        "(0, 4)"
+      ],
+      answer: 1,
+      explanation: "El corte con el eje Y se obtiene evaluando en x = 0: g(0) = 3^(0-4) + 1 = 3⁻⁴ + 1 = 1/81 + 1 = 82/81. El punto es (0, 82/81)."
+    },
+    {
+      topic: "Periodo de Funciones Trigonométricas",
+      question: "16. La función f(x) = tan(3x) tiene asíntotas verticales periódicas. ¿Cuál es la distancia entre dos asíntotas consecutivas cualesquiera de esta función?",
+      options: [
+        "π",
+        "π/3",
+        "π/6",
+        "3π"
+      ],
+      answer: 1,
+      explanation: "La distancia entre asíntotas consecutivas es equivalente al periodo de la función. El periodo de tan(bx) es T = π/|b|. Para b = 3, el periodo es T = π/3."
+    },
+    {
+      topic: "Identificación de Funciones por Asíntotas",
+      question: "17. Identifique la función que corresponde a una asíntota horizontal en y = -4 y un rango de (-4, ∞).",
+      options: [
+        "f(x) = 4 - 2ˣ",
+        "f(x) = 2ˣ - 4",
+        "f(x) = log₂(x + 4)",
+        "f(x) = -2^(x-4)"
+      ],
+      answer: 1,
+      explanation: "En f(x) = 2ˣ - 4, el término constante -4 fija la asíntota horizontal en y = -4. Como la potencia 2ˣ > 0, al restar 4 se tiene 2ˣ - 4 > -4, lo que produce el rango (-4, ∞)."
+    },
+    {
+      topic: "Cálculo de la Base en Logaritmos",
+      question: "18. Si f(x) = log_b(x - 3) + 2 pasa por el punto (11, 5), ¿cuál es el valor de la base b?",
+      options: [
+        "b = 2",
+        "b = 3",
+        "b = 8",
+        "b = 4"
+      ],
+      answer: 0,
+      explanation: "Sustituyendo el punto (11, 5) en la ecuación: 5 = log_b(11 - 3) + 2 ⇒ 3 = log_b(8) ⇒ b³ = 8 ⇒ b = 2."
+    },
+    {
+      topic: "Dominio de Logaritmos Exponenciales",
+      question: "19. Determine el dominio de la función f(x) = ln(eˣ - 1).",
+      options: [
+        "(0, ∞)",
+        "(1, ∞)",
+        "(-∞, 0)",
+        "(-∞, ∞)"
+      ],
+      answer: 0,
+      explanation: "Se exige que el argumento sea positivo: eˣ - 1 > 0 ⇒ eˣ > 1. Aplicando el logaritmo natural en ambos lados se obtiene x > ln(1) ⇒ x > 0. Por lo tanto, el dominio es (0, ∞)."
+    },
+    {
+      topic: "Ausencia de Asíntotas en Funciones Polinomiales",
+      question: "20. ¿Cuál de las siguientes funciones NO posee ninguna asíntota en el plano cartesiano?",
+      options: [
+        "f(x) = 2ˣ - 5",
+        "g(x) = log₃(x + 1)",
+        "h(x) = x³ - 2x + 1",
+        "k(x) = tan(x)"
+      ],
+      answer: 2,
+      explanation: "Las funciones polinomiales como h(x) = x³ - 2x + 1 son continuas y están definidas para todo ℝ sin presentar tendencias a valores finitos en los límites ni indefiniciones por división entre cero, por lo que carecen por completo de asíntotas."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions;
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "📐 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Justificación matemática:";
+      feedbackText.innerHTML = "<strong>Fundamento técnico:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "⚡ ¡Dominio Absoluto en Precálculo!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas el análisis de dominios, rangos y asíntotas en funciones logarítmicas, exponenciales y trigonométricas.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación muy avanzado. Revisa los detalles finos en los que fallaste para pulir tus despejes y propiedades.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos repasar la diferencia entre asíntotas horizontales y verticales, así como las restricciones de dominios.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Estudiando!";
+      msg = "¡No te desanimes! Refuerza las propiedades fundamentales de los logaritmos y exponentes para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>
