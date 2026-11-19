@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador ECOEMS: Razonamiento Matemático</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #4c1d95 35%, #831843 70%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #e879f9;
+      --pastel-lime: rgba(232, 121, 249, 0.15);
+      --neon-emerald: #c084fc;
+      --pastel-emerald: rgba(192, 132, 252, 0.15);
+      --neon-cyan: #f472b6;
+      --pastel-cyan: rgba(244, 114, 182, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(232, 121, 249, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(232, 121, 249, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #f5d0fe;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(232, 121, 249, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(232, 121, 249, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(232, 121, 249, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(232, 121, 249, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(232, 121, 249, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #f5d0fe;
+      box-shadow: 0 0 20px rgba(232, 121, 249, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(232, 121, 249, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(192, 132, 252, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(232, 121, 249, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(232, 121, 249, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(232, 121, 249, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Habilidad Matemática</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Nuevo orden aleatorio</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Sucesiones Numéricas",
+      question: "¿Cuál es el número que continúa correctamente en la sucesión: 4, 9, 19, 39, 79, ...?",
+      options: [
+        "158",
+        "159",
+        "119",
+        "160"
+      ],
+      answer: 1,
+      explanation: "Cada término se obtiene multiplicando el término anterior por 2 y sumando 1: 4(2)+1 = 9, 9(2)+1 = 19, 19(2)+1 = 39, 39(2)+1 = 79. Por tanto, el siguiente término es 79 × 2 + 1 = 159."
+    },
+    {
+      topic: "Sucesiones de Segundo Grado",
+      question: "Identifique el término faltante en la siguiente sucesión numérica: 2, 6, 12, 20, 30, ...",
+      options: [
+        "40",
+        "42",
+        "44",
+        "36"
+      ],
+      answer: 1,
+      explanation: "Las diferencias entre términos consecutivos aumentan de dos en dos (+4, +6, +8, +10). La siguiente diferencia debe ser +12, por lo que 30 + 12 = 42 (también equivale a n(n + 1) para n = 6: 6 × 7 = 42)."
+    },
+    {
+      topic: "Sucesión Tipo Fibonacci",
+      question: "En una sucesión de tipo Fibonacci, los primeros términos son: 2, 3, 5, 8, 13, 21, ... ¿Cuál es el octavo término de esta sucesión?",
+      options: [
+        "34",
+        "55",
+        "42",
+        "47"
+      ],
+      answer: 1,
+      explanation: "Cada término es la suma de los dos anteriores. El séptimo término es 13 + 21 = 34 y el octavo término es 21 + 34 = 55."
+    },
+    {
+      topic: "Regla General Algebraica",
+      question: "¿Qué número ocupa la quinta posición en la sucesión definida por la regla general aₙ = n³ - 2?",
+      options: [
+        "123",
+        "125",
+        "23",
+        "62"
+      ],
+      answer: 0,
+      explanation: "Sustituyendo n = 5 en la expresión algebraica: a₅ = 5³ - 2 = 125 - 2 = 123."
+    },
+    {
+      topic: "Progresiones Geométricas",
+      question: "Determine el término que sigue en la sucesión decreciente: 81, 27, 9, 3, 1, ...",
+      options: [
+        "0",
+        "1/3",
+        "-1",
+        "-2"
+      ],
+      answer: 1,
+      explanation: "Es una progresión geométrica decreciente donde cada término se divide entre 3 (razón r = 1/3). Dividiendo el quinto término: 1 ÷ 3 = 1/3."
+    },
+    {
+      topic: "Patrones Geométricos Cíclicos",
+      question: "Un triángulo equilátero tiene un círculo sombreado en uno de sus vértices y rota 120° en sentido horario en cada paso (ciclo de 3 posiciones: 1: Superior, 2: Inferior derecho, 3: Inferior izquierdo). ¿Dónde estará ubicado el círculo sombreado en la figura 20?",
+      options: [
+        "Vértice superior",
+        "Vértice inferior derecho",
+        "Vértice inferior izquierdo",
+        "En el centro del triángulo"
+      ],
+      answer: 1,
+      explanation: "El ciclo consta de k = 3 posiciones. Dividimos 20 ÷ 3 = 6 con residuo R = 2. El residuo 2 corresponde a la segunda posición del ciclo (vértice inferior derecho)."
+    },
+    {
+      topic: "Aritmética Modular en Ciclos",
+      question: "Una rueda de la fortuna tiene 5 cabinas de distintos colores que pasan por la plataforma de abordaje en este orden repetitivo: 1: Roja, 2: Azul, 3: Verde, 4: Amarilla, 5: Blanca. Si la primera cabina en pasar es la Roja, ¿de qué color será la cabina número 35 en pasar?",
+      options: [
+        "Roja",
+        "Azul",
+        "Blanca",
+        "Amarilla"
+      ],
+      answer: 2,
+      explanation: "El ciclo tiene longitud k = 5. Al dividir 35 ÷ 5 = 7, la división es exacta (residuo R = 0), lo cual corresponde siempre al último elemento del ciclo (la quinta cabina: Blanca)."
+    },
+    {
+      topic: "Rotación de Cuadrantes",
+      question: "Un cuadrado dividido en cuatro cuadrantes iguales tiene sombreado el cuadrante superior izquierdo en la Figura 1. En cada nueva figura, el sombreado avanza una casilla en sentido antihorario (2: Inferior izquierdo, 3: Inferior derecho, 4: Superior derecho). ¿Qué cuadrante estará sombreado en la Figura 17?",
+      options: [
+        "Superior izquierdo",
+        "Inferior izquierdo",
+        "Inferior derecho",
+        "Superior derecho"
+      ],
+      answer: 0,
+      explanation: "El ciclo se repite cada 4 figuras. Dividimos 17 ÷ 4 = 4 con residuo R = 1. El residuo 1 indica que regresa exactamente a la posición de la Figura 1 (superior izquierdo)."
+    },
+    {
+      topic: "Giros y Ángulos",
+      question: "Una manecilla de reloj apunta inicialmente a las 12 (Figura 1) y avanza 45° en sentido horario en cada paso (ciclo de 8 posiciones distintas). ¿Cuántos pasos adicionales después de la Figura 1 se necesitan para que complete exactamente 3 vueltas completas?",
+      options: [
+        "16 pasos",
+        "24 pasos",
+        "12 pasos",
+        "32 pasos"
+      ],
+      answer: 1,
+      explanation: "Una vuelta completa de 360° requiere 360° / 45° = 8 pasos. Para completar 3 vueltas completas se requieren 3 × 8 = 24 pasos."
+    },
+    {
+      topic: "Secuencias de Símbolos",
+      question: "Una secuencia de fichas sigue el patrón repetitivo de 4 símbolos: 1: Triángulo (△), 2: Cuadrado (□), 3: Círculo (○), 4: Rombo (◇). ¿Qué símbolo aparecerá en el lugar número 30?",
+      options: [
+        "Triángulo (△)",
+        "Cuadrado (□)",
+        "Círculo (○)",
+        "Rombo (◇)"
+      ],
+      answer: 1,
+      explanation: "El patrón tiene k = 4 símbolos. Dividimos 30 ÷ 4 = 7 con residuo R = 2. El segundo símbolo del ciclo es el cuadrado (□)."
+    },
+    {
+      topic: "Razonamiento Espacial (Cubos Pintados)",
+      question: "Un cubo de madera de 5 cm de arista se pinta completamente de rojo por fuera y se corta en 125 cubitos de 1 cm de arista. ¿Cuántos cubitos tienen exactamente 1 cara pintada de rojo?",
+      options: [
+        "36",
+        "54",
+        "27",
+        "48"
+      ],
+      answer: 1,
+      explanation: "Aplicamos la fórmula para cubitos en el centro de las caras con n = 5: C₁ = 6(n - 2)² = 6(5 - 2)² = 6(3)² = 6 × 9 = 54 cubitos."
+    },
+    {
+      topic: "Cubos Interiores sin Pintar",
+      question: "Un cubo de 6 cm de lado se pinta exteriormente y luego se divide en 216 cubitos de 1 cm de lado (n = 6). ¿Cuántos cubitos quedan completamente sin pintar en su interior?",
+      options: [
+        "64",
+        "96",
+        "48",
+        "36"
+      ],
+      answer: 0,
+      explanation: "Los cubitos sin pintar forman el cubo interior de dimensión (n - 2)³. Para n = 6: C₀ = (6 - 2)³ = 4³ = 64 cubitos."
+    },
+    {
+      topic: "Cubitos en las Aristas",
+      question: "Se pinta la superficie exterior de un cubo de 5 cm de arista y se corta en cubitos unitarios de 1 cm. ¿Cuántos cubitos tienen exactamente 2 caras pintadas?",
+      options: [
+        "24",
+        "36",
+        "12",
+        "48"
+      ],
+      answer: 1,
+      explanation: "Los cubitos con 2 caras pintadas se sitúan en las 12 aristas: C₂ = 12(n - 2) = 12(5 - 2) = 12 × 3 = 36 cubitos."
+    },
+    {
+      topic: "Cubitos en los Vértices",
+      question: "¿Cuántos cubitos tendrán exactamente 3 caras pintadas si un cubo de 10 cm de arista se pinta por fuera y se corta en 1,000 cubitos de 1 cm de arista?",
+      options: [
+        "8",
+        "12",
+        "24",
+        "100"
+      ],
+      answer: 0,
+      explanation: "Los únicos cubitos con 3 caras pintadas son los que ocupan los vértices del cubo original. Todo cubo tiene exactamente 8 vértices, independientemente del valor de n ≥ 2."
+    },
+    {
+      topic: "Deducción de Dimensión de Cubos",
+      question: "Al cortar un cubo grande pintado en n³ cubitos iguales, se observa que hay exactamente 24 cubitos con 1 cara pintada. ¿Cuál es la dimensión n (cantidad de cubitos por arista) del cubo original?",
+      options: [
+        "n = 3",
+        "n = 4",
+        "n = 5",
+        "n = 6"
+      ],
+      answer: 1,
+      explanation: "Igualamos la fórmula de 1 cara pintada a 24: 6(n - 2)² = 24 ⇒ (n - 2)² = 4 ⇒ n - 2 = 2 ⇒ n = 4."
+    },
+    {
+      topic: "Ordenamiento Lineal",
+      question: "En una competencia de natación con cuatro participantes: Mateo llegó después de Elena; Sofía llegó antes que Elena; y Lucas llegó después de Mateo. ¿Quién ocupó el tercer lugar en llegar a la meta?",
+      options: [
+        "Elena",
+        "Mateo",
+        "Sofía",
+        "Lucas"
+      ],
+      answer: 1,
+      explanation: "Ordenando de primero a último lugar: 1° Sofía, 2° Elena, 3° Mateo, 4° Lucas. Por lo tanto, el tercer lugar corresponde a Mateo."
+    },
+    {
+      topic: "Tasas de Trabajo Simultáneo",
+      question: "Una bomba hidráulica A vacía una cisterna en 10 horas y una bomba B vacía la misma cisterna en 15 horas. Si ambas bombas trabajan simultáneamente, ¿en cuántas horas vaciarán por completo la cisterna?",
+      options: [
+        "5 horas",
+        "6 horas",
+        "12.5 horas",
+        "8 horas"
+      ],
+      answer: 1,
+      explanation: "Sumamos sus tasas de trabajo: 1/10 + 1/15 = 1/t_total ⇒ (3 + 2)/30 = 5/30 = 1/6 ⇒ t_total = 6 horas."
+    },
+    {
+      topic: "Principio Fundamental de Conteo",
+      question: "Un candado numérico requiere una combinación de 3 dígitos distintos seleccionados del conjunto {1, 2, 3, 4}. Si el primer dígito debe ser mayor que 2, ¿cuántas combinaciones diferentes se pueden formar?",
+      options: [
+        "12",
+        "24",
+        "16",
+        "8"
+      ],
+      answer: 0,
+      explanation: "Primer dígito (mayor que 2: {3, 4}) tiene 2 opciones. Segundo dígito (de los 3 números restantes) tiene 3 opciones. Tercer dígito (de los 2 restantes) tiene 2 opciones. Total = 2 × 3 × 2 = 12 combinaciones."
+    },
+    {
+      topic: "Deducción Lógica de Desigualdades",
+      question: "Cuatro cajas de distintos colores tienen diferentes pesos: la caja azul pesa más que la verde; la caja roja pesa menos que la amarilla; y la caja verde pesa más que la amarilla. ¿Cuál es la caja más pesada de todas?",
+      options: [
+        "Azul",
+        "Verde",
+        "Amarilla",
+        "Roja"
+      ],
+      answer: 0,
+      explanation: "Encadenando las desigualdades de mayor a menor peso: Azul > Verde > Amarilla > Roja. La caja más pesada es la azul."
+    },
+    {
+      topic: "Trabajo Colaborativo",
+      question: "Un pintor A puede pintar una barda completa en 12 días, mientras que un pintor B puede pintar la misma barda en 4 días. Si trabajan juntos desde el inicio, ¿en cuántos días terminarán la obra?",
+      options: [
+        "3 días",
+        "8 días",
+        "4 días",
+        "6 días"
+      ],
+      answer: 0,
+      explanation: "Aplicando la fórmula de trabajo colaborativo: 1/12 + 1/4 = 1/t_total ⇒ (1 + 3)/12 = 4/12 = 1/3 ⇒ t_total = 3 días."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function shuffleArray(array) {
+    var shuffled = array.slice();
+    for (var i = shuffled.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = shuffled[i];
+      shuffled[i] = shuffled[j];
+      shuffled[j] = temp;
+    }
+    return shuffled;
+  }
+
+  function initQuiz() {
+    questions = shuffleArray(rawQuestions);
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = (currentQuestionIndex + 1) + ". " + q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "🧠 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Razonamiento lógico:";
+      feedbackText.innerHTML = "<strong>Solución:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🎯 ¡Dominio Absoluto en Razonamiento Matemático!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas sucesiones, patrones cíclicos, imaginación espacial y lógica deductiva.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes una agilísima habilidad matemática. Repasa las fórmulas de cubos pintados y tasas de trabajo para alcanzar la perfección.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos practicar más el cálculo de residuos en ciclos repetitivos y combinaciones.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Entrenando la Mente!";
+      msg = "¡No te desanimes! Refuerza la identificación de patrones en sucesiones, cubos unitarios y ordenamientos lógicos para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>

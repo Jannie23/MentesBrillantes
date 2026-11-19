@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador ECOEMS: Pascal, Energía y Ondas</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #090d16 0%, #1e1b4b 40%, #0f766e 80%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #2dd4bf;
+      --pastel-lime: rgba(45, 212, 191, 0.15);
+      --neon-emerald: #818cf8;
+      --pastel-emerald: rgba(129, 140, 248, 0.15);
+      --neon-cyan: #38bdf8;
+      --pastel-cyan: rgba(56, 189, 248, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(45, 212, 191, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(45, 212, 191, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #99f6e4;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(45, 212, 191, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(45, 212, 191, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(45, 212, 191, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(45, 212, 191, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(45, 212, 191, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #99f6e4;
+      box-shadow: 0 0 20px rgba(45, 212, 191, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(45, 212, 191, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(129, 140, 248, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(45, 212, 191, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(45, 212, 191, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(45, 212, 191, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Física: Pascal, Energía y Ondas</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Nuevo orden aleatorio</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Prensa Hidráulica (Principio de Pascal)",
+      question: "En una prensa hidráulica, el émbolo menor tiene un área de A₁ = 0.04 m² y recibe una fuerza de F₁ = 180 N. Si en el émbolo mayor se obtiene una fuerza de salida de F₂ = 2,700 N, ¿cuál es el área A₂ del émbolo mayor?",
+      options: [
+        "0.40 m²",
+        "0.60 m²",
+        "0.80 m²",
+        "1.20 m²"
+      ],
+      answer: 1,
+      explanation: "De la ecuación F₁ / A₁ = F₂ / A₂, despejamos A₂ = (F₂ · A₁) / F₁ = (2,700 N)(0.04 m²) / 180 N = 108 / 180 = 0.60 m²."
+    },
+    {
+      topic: "Presión y Área de Pistón",
+      question: "Un cilindro hidráulico soporta una carga de F = 9,000 N ejerciendo una presión interna en el aceite de P = 150 kPa (150,000 Pa). ¿Cuál es el área de la sección transversal del pistón?",
+      options: [
+        "0.06 m²",
+        "0.60 m²",
+        "0.03 m²",
+        "1.66 m²"
+      ],
+      answer: 0,
+      explanation: "De P = F / A, despejamos el área: A = F / P = 9,000 N / 150,000 Pa = 0.06 m²."
+    },
+    {
+      topic: "Fundamento del Principio de Pascal",
+      question: "¿Cuál es el fundamento físico que permite que una pequeña fuerza aplicada en el pedal de freno de un automóvil logre detener las cuatro ruedas del vehículo mediante un sistema hidráulico?",
+      options: [
+        "El líquido de frenos disminuye su densidad al ser comprimido.",
+        "La presión aplicada al fluido encerrado se transmite íntegramente y con la misma magnitud en todas direcciones hasta los pistones de mayor área en las ruedas.",
+        "La temperatura del líquido aumenta la energía cinética de las balatas.",
+        "Los gases encerrados en las tuberías multiplican la velocidad del fluido."
+      ],
+      answer: 1,
+      explanation: "Según el Principio de Pascal, un incremento de presión en cualquier punto de un fluido confinado e incompresible se transmite sin pérdida a todos los puntos del fluido, multiplicando la fuerza al actuar sobre pistones de mayor superficie."
+    },
+    {
+      topic: "Multiplicación de Fuerza Hidráulica",
+      question: "Se aplica una fuerza de F₁ = 80 N sobre el pistón de entrada de una prensa hidráulica cuya área es A₁ = 0.01 m². ¿Qué magnitud de fuerza F₂ se genera en el pistón de salida si su área es A₂ = 0.25 m²?",
+      options: [
+        "1,000 N",
+        "2,000 N",
+        "3,200 N",
+        "800 N"
+      ],
+      answer: 1,
+      explanation: "F₂ = (F₁ · A₂) / A₁ = (80 N)(0.25 m²) / 0.01 m² = 20 / 0.01 = 2,000 N."
+    },
+    {
+      topic: "Cálculo de Presión Mecánica",
+      question: "Un bloque cúbico cuyo peso es de 450 N descansa sobre una mesa horizontal apoyado en una de sus caras cuya superficie es de 0.15 m². ¿Qué presión ejerce el bloque sobre la mesa?",
+      options: [
+        "67.5 Pa",
+        "3,000 Pa",
+        "300 Pa",
+        "4,500 Pa"
+      ],
+      answer: 1,
+      explanation: "Aplicando la definición de presión: P = F / A = 450 N / 0.15 m² = 3,000 Pa."
+    },
+    {
+      topic: "Invariancia de la Presión en Fluidos",
+      question: "En una prensa hidráulica, el área del émbolo grande es exactamente 15 veces mayor que la del émbolo pequeño (A₂ = 15A₁). Si se aplica una fuerza F₁ en el émbolo pequeño, ¿cómo será la presión P₂ en el émbolo grande comparada con la presión P₁ en el émbolo pequeño?",
+      options: [
+        "P₂ = 15 P₁",
+        "P₂ = P₁",
+        "P₂ = (1/15) P₁",
+        "P₂ = 225 P₁"
+      ],
+      answer: 1,
+      explanation: "El Principio de Pascal establece que la presión se transmite con exactamente la misma intensidad a través del fluido; lo que se multiplica por 15 es la fuerza (F₂ = 15F₁), pero la presión es idéntica (P₂ = P₁)."
+    },
+    {
+      topic: "Fuerza Hidráulica sobre un Émbolo",
+      question: "Sobre un émbolo circular de área A = 0.08 m² actúa una presión hidráulica de 125 kPa. ¿Cuál es la magnitud de la fuerza ejercida sobre dicho émbolo?",
+      options: [
+        "10,000 N",
+        "1,000 N",
+        "15,625 N",
+        "100 N"
+      ],
+      answer: 0,
+      explanation: "Convertimos la presión a Pascales: 125 kPa = 125,000 Pa. Luego: F = P · A = (125,000 Pa)(0.08 m²) = 10,000 N."
+    },
+    {
+      topic: "Energía Potencial Gravitatoria",
+      question: "Un paquete de 4 kg se encuentra en reposo en lo alto de un andamio a 12 m sobre el suelo. Considerando g = 10 m/s², ¿cuál es su energía potencial gravitatoria respecto al suelo?",
+      options: [
+        "48 J",
+        "480 J",
+        "240 J",
+        "120 J"
+      ],
+      answer: 1,
+      explanation: "Aplicamos la fórmula de energía potencial gravitatoria: Ep = m · g · h = (4 kg)(10 m/s²)(12 m) = 480 J."
+    },
+    {
+      topic: "Energía Cinética Traslacional",
+      question: "Un balón de 0.6 kg rueda sobre una pista horizontal sin fricción con una rapidez constante de 10 m/s. ¿Cuál es el valor de su energía cinética?",
+      options: [
+        "30 J",
+        "60 J",
+        "6 J",
+        "300 J"
+      ],
+      answer: 0,
+      explanation: "Ec = (1/2) m v² = (1/2)(0.6 kg)(10 m/s)² = 0.3 × 100 = 30 J."
+    },
+    {
+      topic: "Conservación de la Energía (Tiro Vertical)",
+      question: "Una flecha es disparada verticalmente hacia arriba desde el nivel del suelo con una rapidez inicial de vi = 40 m/s. Despreciando la resistencia del aire y tomando g = 10 m/s², ¿qué altura máxima alcanza la flecha?",
+      options: [
+        "40 m",
+        "80 m",
+        "160 m",
+        "20 m"
+      ],
+      answer: 1,
+      explanation: "Por conservación de la energía, m g h_máx = (1/2) m vi² ⇒ h_máx = vi² / (2g) = (40 m/s)² / [2(10 m/s²)] = 1,600 / 20 = 80 m."
+    },
+    {
+      topic: "Transformación de Energía Mecánica",
+      question: "Una piedra de 5 kg se suelta desde el reposo a una altura de 30 m (g = 10 m/s²). Cuando la piedra ha descendido exactamente hasta la mitad de su recorrido (h = 15 m), ¿cuáles son sus valores de energía potencial y energía cinética respectivamente?",
+      options: [
+        "Ep = 750 J y Ec = 750 J",
+        "Ep = 1,500 J y Ec = 0 J",
+        "Ep = 500 J y Ec = 1,000 J",
+        "Ep = 0 J y Ec = 1,500 J"
+      ],
+      answer: 0,
+      explanation: "La energía mecánica total inicial es Em = (5)(10)(30) = 1,500 J. A la mitad de la altura (15 m), la energía potencial es Ep = (5)(10)(15) = 750 J, y por conservación de la energía el resto es cinética: Ec = 1,500 J - 750 J = 750 J."
+    },
+    {
+      topic: "Relación Cuadrática de la Energía Cinética",
+      question: "Si la rapidez de un automóvil en movimiento se duplica (v₂ = 2v₁) manteniendo constante su masa, ¿qué ocurre con su energía cinética?",
+      options: [
+        "Se duplica.",
+        "Se cuadruplica.",
+        "Se reduce a la mitad.",
+        "Permanece igual."
+      ],
+      answer: 1,
+      explanation: "Como Ec = (1/2) m v² depende del cuadrado de la rapidez, al duplicar v la energía cinética aumenta por un factor de 2² = 4."
+    },
+    {
+      topic: "Rapidez en el Punto Más Bajo",
+      question: "Un carrito de montaña rusa parte del reposo desde la cima de una colina de 45 m de altura y desciende por una vía sin fricción hasta llegar al nivel del suelo (h = 0 m). Con g = 10 m/s², ¿con qué rapidez llega al punto más bajo?",
+      options: [
+        "30 m/s",
+        "45 m/s",
+        "90 m/s",
+        "15 m/s"
+      ],
+      answer: 0,
+      explanation: "Igualando Ec = Ep: (1/2) m v² = m g h ⇒ v = √(2gh) = √[2(10 m/s²)(45 m)] = √900 = 30 m/s."
+    },
+    {
+      topic: "Principio de Conservación Mecánica",
+      question: "¿Qué sucede con la energía mecánica total (Ec + Ep) de una pelota que cae libremente en el vacío bajo la acción exclusiva de la gravedad?",
+      options: [
+        "Aumenta progresivamente conforme se acerca al suelo.",
+        "Disminuye hasta llegar a cero antes de tocar el piso.",
+        "Permanece constante en cada instante de la caída, transformándose de potencial a cinética.",
+        "Se convierte íntegramente en energía química."
+      ],
+      answer: 2,
+      explanation: "En ausencia de fuerzas disipativas (como la fricción con el aire), la energía mecánica total de un sistema aislado se conserva constante durante toda la trayectoria."
+    },
+    {
+      topic: "Frecuencia de Ondas Sonoras",
+      question: "Una onda sonora viaja en el aire con una velocidad de v = 340 m/s y una longitud de onda de λ = 0.85 m. ¿Cuál es la frecuencia (f) de dicho sonido?",
+      options: [
+        "400 Hz",
+        "289 Hz",
+        "250 Hz",
+        "500 Hz"
+      ],
+      answer: 0,
+      explanation: "Despejando f de v = λ · f: f = v / λ = 340 m/s / 0.85 m = 400 Hz."
+    },
+    {
+      topic: "Longitud de Onda en Cuerdas",
+      question: "Una onda transversal se propaga a lo largo de un cable tenso con una velocidad de v = 48 m/s y una frecuencia de f = 16 Hz. ¿Cuál es su longitud de onda (λ)?",
+      options: [
+        "3.0 m",
+        "0.33 m",
+        "768 m",
+        "32 m"
+      ],
+      answer: 0,
+      explanation: "Despejando λ de v = λ · f: λ = v / f = 48 m/s / 16 Hz = 3.0 m."
+    },
+    {
+      topic: "Concepto de Longitud de Onda",
+      question: "¿Cómo se define físicamente la longitud de onda (λ) de un movimiento ondulatorio periódico?",
+      options: [
+        "El número total de vibraciones que realiza la fuente en un minuto.",
+        "La distancia lineal medida entre dos crestas consecutivas o dos valles consecutivos de la onda.",
+        "El tiempo que tarda una partícula en completar una oscilación vertical.",
+        "La altura máxima que alcanza una cresta respecto a la línea de equilibrio."
+      ],
+      answer: 1,
+      explanation: "La longitud de onda es la distancia espacial entre dos puntos sucesivos que se encuentran en idéntica fase de oscilación (como cresta a cresta o valle a valle)."
+    },
+    {
+      topic: "Propagación de Ondas Electromagnéticas",
+      question: "Una estación de radio transmite ondas electromagnéticas con una longitud de onda de λ = 3 m y una frecuencia de f = 100,000,000 Hz (1 × 10⁸ Hz). ¿Con qué rapidez se propagan estas ondas?",
+      options: [
+        "3 × 10⁸ m/s",
+        "3.33 × 10⁷ m/s",
+        "3 × 10⁶ m/s",
+        "1 × 10⁸ m/s"
+      ],
+      answer: 0,
+      explanation: "Aplicando v = λ · f = (3 m)(1 × 10⁸ Hz) = 3 × 10⁸ m/s (velocidad de la luz en el vacío)."
+    },
+    {
+      topic: "Velocidad de Ondas Superficiales",
+      question: "En la superficie de un estanque se generan olas cuya frecuencia es de f = 5 Hz y cuya distancia entre crestas sucesivas es λ = 1.4 m. ¿Cuál es la velocidad de avance de las olas?",
+      options: [
+        "7.0 m/s",
+        "3.57 m/s",
+        "0.28 m/s",
+        "6.4 m/s"
+      ],
+      answer: 0,
+      explanation: "v = λ · f = (1.4 m)(5 Hz) = 7.0 m/s."
+    },
+    {
+      topic: "Proporcionalidad Inversa Onda-Frecuencia",
+      question: "Si una onda mecánica mantiene constante su rapidez de propagación v en un medio uniforme, pero se triplica su frecuencia (f₂ = 3f₁), ¿qué ocurre con su longitud de onda?",
+      options: [
+        "Se triplica.",
+        "Se reduce a la tercera parte.",
+        "Permanece sin cambio.",
+        "Se reduce a la novena parte."
+      ],
+      answer: 1,
+      explanation: "Dado que λ = v / f y v es constante, la longitud de onda y la frecuencia son inversamente proporcionales; al triplicarse f, λ se divide entre 3."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function shuffleArray(array) {
+    var shuffled = array.slice();
+    for (var i = shuffled.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = shuffled[i];
+      shuffled[i] = shuffled[j];
+      shuffled[j] = temp;
+    }
+    return shuffled;
+  }
+
+  function initQuiz() {
+    questions = shuffleArray(rawQuestions);
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = (currentQuestionIndex + 1) + ". " + q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "⚡ ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Justificación física:";
+      feedbackText.innerHTML = "<strong>Fundamento:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🚀 ¡Dominio Absoluto en Física!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas Principio de Pascal, conservación de la energía y ecuaciones ondulatorias.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación en física muy sólido. Repasa los despejes de prensa hidráulica y energía cinética para alcanzar la perfección.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos practicar más la conversión de kPa a Pa y la relación entre frecuencia y longitud de onda.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Practicando!";
+      msg = "¡No te desanimes! Refuerza las fórmulas de presión, energía mecánica y ondas para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>

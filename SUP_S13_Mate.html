@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador de Matemáticas Superior: Distancia y División de Segmentos</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #090d16 0%, #1e3a8a 40%, #312e81 80%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #fbbf24;
+      --pastel-lime: rgba(251, 191, 36, 0.15);
+      --neon-emerald: #60a5fa;
+      --pastel-emerald: rgba(96, 165, 250, 0.15);
+      --neon-cyan: #38bdf8;
+      --pastel-cyan: rgba(56, 189, 248, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(251, 191, 36, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #fde68a;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(251, 191, 36, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(251, 191, 36, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #fde68a;
+      box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Geometría Analítica: Distancia y Segmentos</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Reiniciar simulador</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Distancia entre dos puntos en el plano",
+      question: "1. Calcule la distancia entre los puntos M(-1, -2) y N(7, 4) en el plano cartesiano.",
+      options: [
+        "8 unidades",
+        "10 unidades",
+        "12 unidades",
+        "14 unidades"
+      ],
+      answer: 1,
+      explanation: "Aplicando la fórmula de distancia: d = √[(7 - (-1))² + (4 - (-2))²] = √[8² + 6²] = √[64 + 36] = √100 = 10 unidades."
+    },
+    {
+      topic: "Aplicación Cartográfica de Distancia",
+      question: "2. En un mapa cartográfico donde cada unidad representa 1 km, dos torres de observación se encuentran ubicadas en las coordenadas T₁(-3, 2) y T₂(2, 14). ¿Cuál es la distancia en línea recta entre ambas torres?",
+      options: [
+        "12 km",
+        "13 km",
+        "15 km",
+        "17 km"
+      ],
+      answer: 1,
+      explanation: "d = √[(2 - (-3))² + (14 - 2)²] = √[5² + 12²] = √[25 + 144] = √169 = 13 km."
+    },
+    {
+      topic: "Distancia desde el Origen",
+      question: "3. Determine la distancia entre el origen del plano cartesiano O(0, 0) y el punto Q(-6, -8).",
+      options: [
+        "10 unidades",
+        "14 unidades",
+        "2 unidades",
+        "48 unidades"
+      ],
+      answer: 0,
+      explanation: "d = √[(-6 - 0)² + (-8 - 0)²] = √[36 + 64] = √100 = 10 unidades."
+    },
+    {
+      topic: "Perímetro de Figuras en el Plano",
+      question: "4. Un triángulo tiene sus vértices en los puntos A(0, 0), B(4, 0) y C(0, 3). ¿Cuál es el perímetro total de dicho triángulo?",
+      options: [
+        "7 unidades",
+        "10 unidades",
+        "12 unidades",
+        "15 unidades"
+      ],
+      answer: 2,
+      explanation: "Calculamos cada lado: d_AB = √[(4 - 0)² + (0 - 0)²] = 4; d_AC = √[(0 - 0)² + (3 - 0)²] = 3; d_BC = √[(0 - 4)² + (3 - 0)²] = √[16 + 9] = 5. El perímetro es 4 + 3 + 5 = 12 unidades."
+    },
+    {
+      topic: "Despeje de Coordenada con Distancia Dada",
+      question: "5. La distancia entre el punto A(2, 5) y el punto B(x, 1) es igual a 5 unidades. Si x > 2, ¿cuál es el valor de la abscisa x?",
+      options: [
+        "x = 3",
+        "x = 4",
+        "x = 5",
+        "x = 6"
+      ],
+      answer: 2,
+      explanation: "Planteamos 5 = √[(x - 2)² + (1 - 5)²] ⇒ 25 = (x - 2)² + (-4)² ⇒ 25 = (x - 2)² + 16 ⇒ (x - 2)² = 9. Como x > 2 tomamos la raíz positiva: x - 2 = 3 ⇒ x = 5."
+    },
+    {
+      topic: "Distancia sobre Rectas Horizontales",
+      question: "6. ¿Cuál es la distancia entre dos puntos que comparten exactamente la misma ordenada: P(-7, 4) y Q(9, 4)?",
+      options: [
+        "2 unidades",
+        "16 unidades",
+        "12 unidades",
+        "63 unidades"
+      ],
+      answer: 1,
+      explanation: "Al estar sobre una misma recta horizontal (y₁ = y₂ = 4), la distancia se reduce al valor absoluto de la diferencia de sus abscisas: d = |9 - (-7)| = |16| = 16 unidades."
+    },
+    {
+      topic: "Fundamento Geométrico de la Distancia",
+      question: "7. ¿Qué teorema de la geometría euclidiana sustenta directamente la demostración de la fórmula de la distancia entre dos puntos en el plano cartesiano?",
+      options: [
+        "Teorema de Tales",
+        "Teorema de Pitágoras",
+        "Teorema de Herón",
+        "Teorema del Binomio"
+      ],
+      answer: 1,
+      explanation: "El segmento que une dos puntos no alineados horizontal o verticalmente actúa como la hipotenusa de un triángulo rectángulo cuyos catetos son las diferencias Δx y Δy, aplicando directamente d² = (Δx)² + (Δy)²."
+    },
+    {
+      topic: "Longitud Exacta con Radicales",
+      question: "8. Calcule la longitud exacta del segmento con extremos en R(1, 2) y S(5, 6).",
+      options: [
+        "4",
+        "4√2",
+        "8",
+        "2√2"
+      ],
+      answer: 1,
+      explanation: "d = √[(5 - 1)² + (6 - 2)²] = √[4² + 4²] = √[16 + 16] = √32 = √(16 × 2) = 4√2."
+    },
+    {
+      topic: "Radio de una Circunferencia en el Plano",
+      question: "9. Una circunferencia tiene su centro en C(-2, 3) y pasa por el punto P(3, -9). ¿Cuánto mide el radio de dicha circunferencia?",
+      options: [
+        "12 unidades",
+        "13 unidades",
+        "15 unidades",
+        "17 unidades"
+      ],
+      answer: 1,
+      explanation: "El radio es la distancia del centro C a cualquier punto P de la circunferencia: r = √[(3 - (-2))² + (-9 - 3)²] = √[5² + (-12)²] = √[25 + 144] = √169 = 13 unidades."
+    },
+    {
+      topic: "Propiedad de Simetría Métrica",
+      question: "10. Si se intercambian los papeles de los puntos A(x₁, y₁) y B(x₂, y₂) al calcular la distancia mediante d = √[(x₁ - x₂)² + (y₁ - y₂)²], ¿qué sucede con el valor numérico obtenido?",
+      options: [
+        "Cambia de signo a negativo.",
+        "Se duplica su magnitud.",
+        "Permanece exactamente igual porque todo número real elevado al cuadrado es no negativo.",
+        "Se invierte su valor recíproco."
+      ],
+      answer: 2,
+      explanation: "Dado que (a - b)² = (b - a)² para cualesquiera números reales a y b, la distancia es una métrica simétrica (d_AB = d_BA)."
+    },
+    {
+      topic: "División de Segmento en Razón Dada",
+      question: "11. Determine las coordenadas del punto P(x, y) que divide al segmento con extremos A(1, 2) y B(7, 8) en la razón AP : PB = 1 : 2.",
+      options: [
+        "P(3, 4)",
+        "P(4, 5)",
+        "P(2, 3)",
+        "P(5, 6)"
+      ],
+      answer: 0,
+      explanation: "Con r = 1/2: x = [1 + (1/2)(7)] / [1 + 1/2] = 4.5 / 1.5 = 3; y = [2 + (1/2)(8)] / [1 + 1/2] = 6 / 1.5 = 4. El punto es P(3, 4)."
+    },
+    {
+      topic: "Coordenadas del Punto Medio",
+      question: "12. ¿Cuáles son las coordenadas del punto medio del segmento cuyos extremos son A(-6, 4) y B(2, -10)?",
+      options: [
+        "(-2, -3)",
+        "(-4, -6)",
+        "(4, -7)",
+        "(-2, 3)"
+      ],
+      answer: 0,
+      explanation: "Para el punto medio (r = 1): xm = (-6 + 2) / 2 = -4 / 2 = -2; ym = (4 + (-10)) / 2 = -6 / 2 = -3. El punto medio es (-2, -3)."
+    },
+    {
+      topic: "Cálculo de la Razón de División",
+      question: "13. El punto P(5, 4) divide al segmento formado por los extremos A(1, 2) y B(7, 5). ¿En qué razón AP : PB divide el punto P al segmento?",
+      options: [
+        "1 : 2",
+        "2 : 1",
+        "3 : 2",
+        "2 : 3"
+      ],
+      answer: 1,
+      explanation: "Despejando r con las abscisas: r = (x - x₁) / (x₂ - x) = (5 - 1) / (7 - 5) = 4 / 2 = 2 / 1. La razón es 2 : 1."
+    },
+    {
+      topic: "División con Razón Entera (r = 3)",
+      question: "14. Encuentre las coordenadas del punto P(x, y) que divide al segmento A(-3, 6) y B(5, -2) en la razón r = 3 (es decir, AP : PB = 3 : 1).",
+      options: [
+        "P(3, 0)",
+        "P(1, 2)",
+        "P(2, 1)",
+        "P(4, -1)"
+      ],
+      answer: 0,
+      explanation: "Sustituyendo r = 3: x = [-3 + 3(5)] / (1 + 3) = (-3 + 15) / 4 = 12 / 4 = 3; y = [6 + 3(-2)] / (1 + 3) = (6 - 6) / 4 = 0 / 4 = 0. El punto es P(3, 0)."
+    },
+    {
+      topic: "Extremo Faltante desde el Punto Medio",
+      question: "15. Si el punto medio de un segmento AB es M(3, -1) y uno de sus extremos es A(-1, 4), ¿cuáles son las coordenadas del otro extremo B(x₂, y₂)?",
+      options: [
+        "B(7, -6)",
+        "B(1, 1.5)",
+        "B(5, -4)",
+        "B(7, 6)"
+      ],
+      answer: 0,
+      explanation: "De xm = (x₁ + x₂) / 2 ⇒ 3 = (-1 + x₂) / 2 ⇒ 6 = -1 + x₂ ⇒ x₂ = 7. De ym = (y₁ + y₂) / 2 ⇒ -1 = (4 + y₂) / 2 ⇒ -2 = 4 + y₂ ⇒ y₂ = -6. El extremo es B(7, -6)."
+    },
+    {
+      topic: "Proporción Fraccionaria de Subsegmentos",
+      question: "16. Un punto P divide internamente a un segmento AB en la razón AP : PB = 2 : 5. ¿Qué fracción de la longitud total del segmento AB representa el subsegmento AP?",
+      options: [
+        "2/5",
+        "2/7",
+        "5/7",
+        "3/5"
+      ],
+      answer: 1,
+      explanation: "Si AP mide 2 partes y PB mide 5 partes, la longitud total del segmento AB = AP + PB consta de 2 + 5 = 7 partes iguales. Por ello, AP representa 2/7 del segmento total."
+    },
+    {
+      topic: "Determinación de Razón Fraccionaria",
+      question: "17. El punto P(1, -1) se encuentra sobre el segmento con extremos A(-2, -7) y B(3, 3). Determine la razón r = AP / PB.",
+      options: [
+        "r = 2/3",
+        "r = 3/2",
+        "r = 1/2",
+        "r = 3"
+      ],
+      answer: 1,
+      explanation: "Utilizando las abscisas: r = (x - x₁) / (x₂ - x) = (1 - (-2)) / (3 - 1) = 3/2. Verificando con ordenadas: r = (-1 - (-7)) / (3 - (-1)) = 6 / 4 = 3/2."
+    },
+    {
+      topic: "División de Segmento en Razón 3:2",
+      question: "18. Determine las coordenadas del punto P(x, y) que divide al segmento A(0, 10) y B(10, 0) en la razón AP : PB = 3 : 2.",
+      options: [
+        "P(6, 4)",
+        "P(4, 6)",
+        "P(5, 5)",
+        "P(7, 3)"
+      ],
+      answer: 0,
+      explanation: "Con r = 3/2 = 1.5: x = [0 + 1.5(10)] / (1 + 1.5) = 15 / 2.5 = 6; y = [10 + 1.5(0)] / (1 + 1.5) = 10 / 2.5 = 4. El punto es P(6, 4)."
+    },
+    {
+      topic: "Razón de División en el Punto Medio",
+      question: "19. ¿Qué valor toma la razón r = AP / PB cuando el punto P coincide exactamente con el punto medio del segmento AB?",
+      options: [
+        "r = 0",
+        "r = 0.5",
+        "r = 1",
+        "r = 2"
+      ],
+      answer: 2,
+      explanation: "En el punto medio, las longitudes de los dos subsegmentos son idénticas (AP = PB), por lo que su cociente es r = AP / PB = 1."
+    },
+    {
+      topic: "Aplicación Práctica de División de Segmento",
+      question: "20. Una tubería recta conecta una válvula en A(-5, -3) con un tanque en B(7, 9). Se instalará un medidor de presión en un punto P situado a una tercera parte de la distancia total partiendo desde A hacia B (es decir, AP : PB = 1 : 2). ¿Cuáles son las coordenadas del medidor?",
+      options: [
+        "P(-1, 1)",
+        "P(1, 3)",
+        "P(3, 5)",
+        "P(-2, 0)"
+      ],
+      answer: 0,
+      explanation: "Una tercera parte desde A implica 1 parte para AP y 2 partes para PB (r = 1/2). Calculando: x = [-5 + (1/2)(7)] / (1 + 1/2) = -1.5 / 1.5 = -1; y = [-3 + (1/2)(9)] / (1 + 1/2) = 1.5 / 1.5 = 1. Las coordenadas son P(-1, 1)."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function initQuiz() {
+    questions = rawQuestions;
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "📐 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Procedimiento analítico:";
+      feedbackText.innerHTML = "<strong>Desarrollo:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🧭 ¡Dominio Absoluto en Geometría Analítica!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas la fórmula de distancia entre puntos, el punto medio y la división de segmentos en una razón dada.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación en geometría analítica muy sólido. Revisa detalladamente los despejes de coordenadas extremas y razones fraccionarias para afinar los últimos detalles.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos repasar la fórmula de división de un segmento en una razón r y los signos al restar coordenadas negativas.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Practicando!";
+      msg = "¡No te desanimes! Refuerza el Teorema de Pitágoras aplicado al plano cartesiano y las fórmulas de punto medio para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulador ECOEMS: Geometría y Probabilidad</title>
+  <style>
+    @font-face {
+      font-family: 'Mogena';
+      src: url('https://fonts.cdnfonts.com/s/91216/MogenaRegular-8Mzx3.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #090d16 0%, #1e3a8a 40%, #065f46 80%, #020617 100%);
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+
+      --neon-lime: #34d399;
+      --pastel-lime: rgba(52, 211, 153, 0.15);
+      --neon-emerald: #60a5fa;
+      --pastel-emerald: rgba(96, 165, 250, 0.15);
+      --neon-cyan: #22d3ee;
+      --pastel-cyan: rgba(34, 211, 238, 0.15);
+      --neon-green: #22c55e;
+      --pastel-green: rgba(34, 197, 94, 0.2);
+      --neon-red: #ef4444;
+      --pastel-red: rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mogena', 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(6px, 1.5vw, 20px);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      width: 100%;
+      max-width: 1250px;
+      min-height: min(94vh, 900px);
+      border-radius: clamp(16px, 2.5vw, 28px);
+      border: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(52, 211, 153, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      margin: auto;
+      position: relative;
+    }
+
+    .progress-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 36px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: clamp(2px, 0.3vw, 3px) solid var(--neon-lime);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      gap: clamp(10px, 2.5vw, 24px);
+      flex-wrap: wrap;
+      font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+      color: var(--neon-lime);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
+    }
+
+    .shortcut-hint {
+      font-size: 0.8rem;
+      color: #a7f3d0;
+      font-weight: 600;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .shortcut-hint {
+        display: inline-block;
+      }
+    }
+
+    .top-brand-logo img {
+      height: clamp(34px, 5vw, 68px);
+      width: auto;
+      object-fit: contain;
+      filter: contrast(1.15) drop-shadow(0 0 10px rgba(52, 211, 153, 0.5));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .top-brand-logo img:hover {
+      transform: scale(1.1) rotate(-2deg);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: clamp(10px, 1.1vw, 15px);
+      background-color: rgba(30, 41, 59, 0.8);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1.5px solid rgba(52, 211, 153, 0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--neon-lime);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-body {
+      padding: clamp(16px, 2.5vw, 36px);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1150px;
+      margin: 0 auto;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .question-topic {
+      align-self: flex-start;
+      font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px clamp(12px, 1.5vw, 18px);
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      font-weight: 900;
+      margin-bottom: clamp(10px, 1.5vw, 18px);
+      box-shadow: 0 0 15px rgba(52, 211, 153, 0.4);
+    }
+
+    .question-text {
+      font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: clamp(16px, 2vw, 24px);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: clamp(10px, 1.3vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: clamp(2px, 0.25vw, 3px) solid rgba(52, 211, 153, 0.35);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      padding: clamp(12px, 1.4vw, 16px) clamp(14px, 1.6vw, 18px);
+      text-align: left;
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
+      font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-height: 56px;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 8px 20px rgba(52, 211, 153, 0.3);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .option-btn.selected {
+      border-color: var(--neon-lime);
+      background-color: var(--pastel-lime);
+      color: #a7f3d0;
+      box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+      transform: scale(1.01);
+    }
+
+    .option-prefix {
+      font-weight: 900;
+      margin-right: 12px;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      width: clamp(34px, 3.2vw, 40px);
+      height: clamp(34px, 3.2vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: clamp(0.85rem, 1vw, 1rem);
+      color: #0f172a;
+      border: 2px solid var(--neon-lime);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .option-btn.selected .option-prefix {
+      background: var(--neon-lime);
+      border-color: #ffffff;
+      color: #0f172a;
+      transform: rotate(360deg);
+    }
+
+    .option-btn.correct {
+      background-color: var(--pastel-green) !important;
+      border-color: var(--neon-green) !important;
+      color: #86efac !important;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.5) !important;
+      animation: popSuccess 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .option-btn.correct .option-prefix {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #0f172a;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--pastel-red) !important;
+      border-color: var(--neon-red) !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+      animation: shakeError 0.35s ease-in-out;
+    }
+    .option-btn.incorrect .option-prefix {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+      color: #ffffff;
+    }
+
+    .feedback-panel {
+      padding: clamp(14px, 1.8vw, 20px);
+      border-radius: clamp(14px, 1.5vw, 18px);
+      margin-bottom: clamp(14px, 1.8vw, 20px);
+      display: none;
+      animation: slideUp 0.3s ease;
+      line-height: 1.5;
+      font-size: clamp(0.9rem, 1.05vw, 1rem);
+    }
+
+    .feedback-panel.success {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-green);
+      color: #dcfce7;
+    }
+
+    .feedback-panel.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: clamp(2px, 0.25vw, 3px) solid var(--neon-red);
+      color: #ffe4e6;
+    }
+
+    .feedback-title {
+      font-weight: 900;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(1rem, 1.15vw, 1.15rem);
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      padding: clamp(12px, 1.4vw, 16px) clamp(24px, 2.8vw, 34px);
+      font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(12px, 1.2vw, 16px);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.5px;
+      width: auto;
+      min-height: 48px;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      box-shadow: 0 6px 20px rgba(52, 211, 153, 0.4);
+    }
+    .btn-check:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+    .btn-check:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--neon-emerald), var(--neon-cyan));
+      color: #0f172a;
+      display: none;
+      box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
+    }
+    .btn-next:hover {
+      transform: translateY(-2px) scale(1.03);
+      filter: brightness(1.15);
+    }
+
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: clamp(24px, 4vw, 50px) clamp(14px, 3vw, 24px);
+      margin: auto;
+      max-width: 800px;
+      animation: slideUp 0.4s ease;
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--neon-lime);
+      font-weight: 900;
+      text-shadow: 0 0 15px rgba(52, 211, 153, 0.5);
+    }
+
+    .result-score {
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(10px, 1.8vw, 18px) 0;
+      filter: drop-shadow(0 0 15px rgba(52, 211, 153, 0.6));
+    }
+
+    .result-message {
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: var(--text-main);
+      margin-bottom: clamp(20px, 2.8vw, 32px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .btn-restart {
+      background: linear-gradient(135deg, var(--neon-lime), var(--neon-emerald));
+      color: #0f172a;
+      padding: clamp(14px, 1.6vw, 18px) clamp(30px, 3.5vw, 44px);
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      box-shadow: 0 8px 25px rgba(52, 211, 153, 0.5);
+    }
+    .btn-restart:hover {
+      transform: scale(1.06);
+      filter: brightness(1.15);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1.01); }
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    @media (max-width: 580px) {
+      .quiz-footer {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+        text-align: center;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="progress-header" id="progressHeader">
+    <div class="header-top">
+      <div class="progress-info">
+        <span id="questionCounter">Pregunta 1 de 20</span>
+        <span id="scoreCounter">Aciertos: 0</span>
+        <span class="shortcut-hint">💡 Usa las teclas [A, B, C, D] y [Enter]</span>
+      </div>
+      <div class="top-brand-logo">
+        <img src="Logo_MB.png" alt="Logo ECOEMS">
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body" id="quizBody">
+    <span class="question-topic" id="topicBadge">Geometría y Probabilidad</span>
+    <h2 class="question-text" id="questionText">Cargando reactivo...</h2>
+
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="action-btn btn-check" id="checkBtn" disabled>Comprobar respuesta</button>
+      <button class="action-btn btn-next" id="nextBtn">Siguiente pregunta ➔</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <h2 class="result-title" id="resultTitle">¡Evaluación Finalizada!</h2>
+    <div class="result-score" id="finalScore">0 / 20</div>
+    <p class="result-message" id="finalMessage">Mensaje de desempeño</p>
+    <button class="action-btn btn-restart" id="restartBtn">↻ Nuevo orden aleatorio</button>
+  </div>
+</div>
+
+<script>
+  var rawQuestions = [
+    {
+      topic: "Ángulos entre Paralelas y Secante",
+      question: "Dos rectas paralelas son cortadas por una recta secante. Si uno de los ángulos interiores mide 52°, ¿cuánto mide el ángulo interior ubicado del mismo lado de la transversal?",
+      options: [
+        "52°",
+        "128°",
+        "38°",
+        "142°"
+      ],
+      answer: 1,
+      explanation: "Los ángulos colaterales internos (del mismo lado de la transversal entre paralelas) son suplementarios, por lo que suman 180°: 180° - 52° = 128°."
+    },
+    {
+      topic: "Teorema del Ángulo Exterior",
+      question: "En un triángulo △ABC, el ángulo interior en A mide 54° y el ángulo interior en B mide 61°. ¿Cuánto mide el ángulo exterior adyacente al vértice C?",
+      options: [
+        "65°",
+        "115°",
+        "126°",
+        "119°"
+      ],
+      answer: 1,
+      explanation: "Por el teorema del ángulo exterior de un triángulo, su medida es igual a la suma de los dos ángulos interiores no adyacentes: 54° + 61° = 115°."
+    },
+    {
+      topic: "Ángulos Alternos Internos",
+      question: "Cuando dos rectas paralelas son intersecadas por una transversal, ¿qué relación métrica guardan siempre dos ángulos alternos internos?",
+      options: [
+        "Son complementarios (suman 90°).",
+        "Tienen exactamente la misma medida (son congruentes).",
+        "Son suplementarios (suman 180°).",
+        "Uno mide siempre el doble que el otro."
+      ],
+      answer: 1,
+      explanation: "Por propiedad geométrica del paralelismo, los ángulos alternos internos (situados entre las paralelas y en lados opuestos de la transversal) son siempre iguales entre sí."
+    },
+    {
+      topic: "Ángulos Interiores de un Triángulo",
+      question: "Los ángulos interiores de un triángulo están expresados algebraicamente como 2x, 3x y 4x. ¿Cuál es la medida del ángulo interior mayor de dicho triángulo?",
+      options: [
+        "20°",
+        "60°",
+        "80°",
+        "90°"
+      ],
+      answer: 2,
+      explanation: "La suma de los ángulos internos es 180°: 2x + 3x + 4x = 180° ⇒ 9x = 180° ⇒ x = 20°. El ángulo mayor es 4x = 4(20°) = 80°."
+    },
+    {
+      topic: "Ángulos Suplementarios",
+      question: "Dos ángulos son suplementarios. Si uno de ellos mide 34° más que el otro, ¿cuánto mide el ángulo menor?",
+      options: [
+        "73°",
+        "107°",
+        "28°",
+        "62°"
+      ],
+      answer: 0,
+      explanation: "Sea x el ángulo menor; el mayor es x + 34°. Como suman 180°: x + (x + 34°) = 180° ⇒ 2x = 146° ⇒ x = 73°."
+    },
+    {
+      topic: "Ángulos Correspondientes Algebraicos",
+      question: "Dos rectas paralelas son cortadas por una transversal formando dos ángulos correspondientes expresados como (3x + 15)° y (5x - 25)°. ¿Cuál es el valor de x?",
+      options: [
+        "10",
+        "20",
+        "15",
+        "25"
+      ],
+      answer: 1,
+      explanation: "Los ángulos correspondientes entre paralelas son iguales: 3x + 15 = 5x - 25 ⇒ 15 + 25 = 5x - 3x ⇒ 40 = 2x ⇒ x = 20."
+    },
+    {
+      topic: "Ángulo Exterior en Triángulo Rectángulo",
+      question: "En un triángulo rectángulo, uno de sus ángulos agudos mide 37°. ¿Cuánto mide el ángulo exterior adyacente al otro ángulo agudo?",
+      options: [
+        "53°",
+        "127°",
+        "143°",
+        "90°"
+      ],
+      answer: 1,
+      explanation: "Los dos ángulos interiores no adyacentes al segundo ángulo agudo son el ángulo recto (90°) y el primer ángulo agudo (37°). Por el teorema del ángulo exterior: 90° + 37° = 127°."
+    },
+    {
+      topic: "Perímetro y Área de Rectángulos",
+      question: "El perímetro de una cancha rectangular mide 84 m. Si el largo es 10 m mayor que el ancho, ¿cuál es el área de la cancha?",
+      options: [
+        "416 m²",
+        "380 m²",
+        "440 m²",
+        "360 m²"
+      ],
+      answer: 0,
+      explanation: "Sea w el ancho y l = w + 10 el largo. Planteamos 2(w + 10) + 2w = 84 ⇒ 4w + 20 = 84 ⇒ 4w = 64 ⇒ w = 16 m. Entonces l = 26 m, y el área es A = 26 × 16 = 416 m²."
+    },
+    {
+      topic: "Áreas por Sustracción",
+      question: "A una placa metálica rectangular de 18 cm de largo por 10 cm de ancho se le recorta un cuadrado de 5 cm de lado en su interior. ¿Cuál es el área de la superficie metálica restante?",
+      options: [
+        "155 cm²",
+        "160 cm²",
+        "175 cm²",
+        "130 cm²"
+      ],
+      answer: 0,
+      explanation: "Área del rectángulo: 18 × 10 = 180 cm². Área del cuadrado recortado: 5² = 25 cm². Área restante: 180 - 25 = 155 cm²."
+    },
+    {
+      topic: "Área del Triángulo",
+      question: "Un triángulo tiene una base de 14 cm y una altura correspondiente de 9 cm. ¿Cuál es su área?",
+      options: [
+        "126 cm²",
+        "63 cm²",
+        "46 cm²",
+        "23 cm²"
+      ],
+      answer: 1,
+      explanation: "Aplicando la fórmula del área del triángulo: A = (b · h) / 2 = (14 × 9) / 2 = 126 / 2 = 63 cm²."
+    },
+    {
+      topic: "Relación Área-Perímetro en Cuadrados",
+      question: "El área de un terreno cuadrado es de 196 m². Si se desea cercar todo su contorno con una malla de alambre, ¿cuántos metros lineales de malla se necesitan?",
+      options: [
+        "14 m",
+        "49 m",
+        "56 m",
+        "98 m"
+      ],
+      answer: 2,
+      explanation: "El lado del cuadrado es l = √196 = 14 m. El perímetro necesario para la cerca es P = 4l = 4(14 m) = 56 m."
+    },
+    {
+      topic: "Área de Figuras Compuestas",
+      question: "Una figura compuesta en forma de 'L' está formada por la unión de un rectángulo vertical de 10 cm de alto por 4 cm de ancho y un rectángulo horizontal adosado en su base de 6 cm de largo por 3 cm de alto (sin traslaparse). ¿Cuál es el área total de la figura compuesta?",
+      options: [
+        "58 cm²",
+        "40 cm²",
+        "64 cm²",
+        "48 cm²"
+      ],
+      answer: 0,
+      explanation: "Sumamos las áreas de las dos regiones que la componen: A₁ = 10 × 4 = 40 cm² y A₂ = 6 × 3 = 18 cm². Área total = 40 + 18 = 58 cm²."
+    },
+    {
+      topic: "Conservación del Perímetro en Recortes",
+      question: "A un cuadrado de cartón de 10 cm de lado se le recorta un cuadrado de 3 cm de lado exactamente en una de sus esquinas. ¿Cuál es el perímetro exterior de la figura resultante después del recorte?",
+      options: [
+        "34 cm",
+        "40 cm",
+        "37 cm",
+        "46 cm"
+      ],
+      answer: 1,
+      explanation: "Al recortar un cuadrado en una esquina, los dos segmentos internos que se forman (3 cm y 3 cm) tienen exactamente la misma longitud que los dos segmentos de borde exterior eliminados (3 cm y 3 cm). Por lo tanto, el perímetro no cambia y sigue siendo 4 × 10 = 40 cm."
+    },
+    {
+      topic: "Despeje de Altura en Triángulos",
+      question: "El área de un triángulo es de 48 cm². Si su base mide 12 cm, ¿cuánto mide su altura?",
+      options: [
+        "4 cm",
+        "6 cm",
+        "8 cm",
+        "16 cm"
+      ],
+      answer: 2,
+      explanation: "De A = (b · h) / 2 despejamos h = 2A / b = 2(48) / 12 = 96 / 12 = 8 cm."
+    },
+    {
+      topic: "Dimensiones Algebraicas de Rectángulos",
+      question: "Un rectángulo tiene un ancho de x centímetros y un largo igual al triple de su ancho (3x). Si su área es de 75 cm², ¿cuánto mide su perímetro?",
+      options: [
+        "30 cm",
+        "40 cm",
+        "20 cm",
+        "50 cm"
+      ],
+      answer: 1,
+      explanation: "Planteamos A = (3x)(x) = 3x² = 75 ⇒ x² = 25 ⇒ x = 5 cm. Así, el ancho es 5 cm y el largo es 15 cm. El perímetro es P = 2(15 + 5) = 40 cm."
+    },
+    {
+      topic: "Regla de Laplace en Dados",
+      question: "Al lanzar un dado normal de 6 caras numeradas del 1 al 6, ¿cuál es la probabilidad de obtener un número mayor que 4?",
+      options: [
+        "1/6",
+        "1/3",
+        "1/2",
+        "2/3"
+      ],
+      answer: 1,
+      explanation: "Los números mayores que 4 en un dado son {5, 6} (2 casos favorables de 6 totales). Por la regla de Laplace: P = 2/6 = 1/3."
+    },
+    {
+      topic: "Probabilidad del Evento Complementario",
+      question: "En una caja hay 4 pelotas verdes, 5 amarillas y 3 rojas. Si se extrae una pelota al azar, ¿cuál es la probabilidad de que NO sea amarilla?",
+      options: [
+        "5/12",
+        "7/12",
+        "1/3",
+        "3/4"
+      ],
+      answer: 1,
+      explanation: "Total = 4 + 5 + 3 = 12 pelotas. Las que no son amarillas son 4 + 3 = 7. Así, P(no amarilla) = 1 - 5/12 = 7/12."
+    },
+    {
+      topic: "Identificación de Muestras Sesgadas",
+      question: "Para conocer el género musical favorito de todos los estudiantes de una preparatoria de 900 alumnos, se aplica una encuesta únicamente a los 40 integrantes de la banda de música escolar. ¿Qué característica tiene la muestra obtenida?",
+      options: [
+        "Es una muestra aleatoria simple completamente confiable.",
+        "Es una muestra sesgada, ya que los integrantes de la banda tienen gustos musicales particulares y no representan a todo el alumnado.",
+        "Es un censo poblacional exacto.",
+        "Es un muestreo estratificado proporcional."
+      ],
+      answer: 1,
+      explanation: "Elegir exclusivamente a un grupo con intereses específicos relacionados con la pregunta introduce un sesgo de selección, invalidando la generalización a toda la escuela."
+    },
+    {
+      topic: "Cálculo de Probabilidad con Divisores",
+      question: "Se gira una ruleta dividida en 12 sectores iguales numerados del 1 al 12. ¿Cuál es la probabilidad de que la flecha señale un número divisor de 12?",
+      options: [
+        "1/3",
+        "1/2",
+        "5/12",
+        "2/3"
+      ],
+      answer: 1,
+      explanation: "Los divisores positivos de 12 son {1, 2, 3, 4, 6, 12} (6 casos favorables de 12 posibles). Por lo tanto, P = 6/12 = 1/2."
+    },
+    {
+      topic: "Representatividad Estadística",
+      question: "¿Qué condición debe cumplir una muestra estadística para considerarse representativa de una población?",
+      options: [
+        "Debe incluir únicamente a las personas que se ofrezcan voluntariamente.",
+        "Debe seleccionarse mediante un procedimiento aleatorio que otorgue oportunidad de inclusión a todos los sectores de la población.",
+        "Debe ser siempre mayor al 90% de la población total.",
+        "Debe contener solo los datos con valores extremos."
+      ],
+      answer: 1,
+      explanation: "La representatividad estadística se logra eliminando sesgos mediante selección aleatoria (simple o estratificada) de modo que la muestra refleje fielmente la composición de la población original."
+    }
+  ];
+
+  var questions = [];
+  var currentQuestionIndex = 0;
+  var selectedOptionIndex = null;
+  var score = 0;
+
+  var prefixes = ["A", "B", "C", "D"];
+
+  var questionCounter = document.getElementById("questionCounter");
+  var scoreCounter = document.getElementById("scoreCounter");
+  var progressBar = document.getElementById("progressBar");
+  var topicBadge = document.getElementById("topicBadge");
+  var questionText = document.getElementById("questionText");
+  var optionsContainer = document.getElementById("optionsContainer");
+  var feedbackPanel = document.getElementById("feedbackPanel");
+  var feedbackTitle = document.getElementById("feedbackTitle");
+  var feedbackText = document.getElementById("feedbackText");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var quizBody = document.getElementById("quizBody");
+  var progressHeader = document.getElementById("progressHeader");
+  var resultScreen = document.getElementById("resultScreen");
+  var finalScore = document.getElementById("finalScore");
+  var finalMessage = document.getElementById("finalMessage");
+  var resultTitle = document.getElementById("resultTitle");
+  var restartBtn = document.getElementById("restartBtn");
+
+  function shuffleArray(array) {
+    var shuffled = array.slice();
+    for (var i = shuffled.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = shuffled[i];
+      shuffled[i] = shuffled[j];
+      shuffled[j] = temp;
+    }
+    return shuffled;
+  }
+
+  function initQuiz() {
+    questions = shuffleArray(rawQuestions);
+    currentQuestionIndex = 0;
+    score = 0;
+    resultScreen.style.display = "none";
+    progressHeader.style.display = "flex";
+    quizBody.style.display = "flex";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    selectedOptionIndex = null;
+    checkBtn.disabled = true;
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    feedbackPanel.style.display = "none";
+    feedbackPanel.className = "feedback-panel";
+
+    var q = questions[currentQuestionIndex];
+
+    questionCounter.textContent = "Pregunta " + (currentQuestionIndex + 1) + " de " + questions.length;
+    scoreCounter.textContent = "Aciertos: " + score;
+    progressBar.style.width = (((currentQuestionIndex + 1) / questions.length) * 100) + "%";
+
+    topicBadge.textContent = q.topic;
+    questionText.innerHTML = (currentQuestionIndex + 1) + ". " + q.question;
+
+    optionsContainer.innerHTML = "";
+    q.options.forEach(function(optText, index) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = '<span class="option-prefix">' + prefixes[index] + '</span> <span>' + optText + '</span>';
+      btn.addEventListener("click", function() { selectOption(index); });
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (checkBtn.style.display === "none") return;
+    selectedOptionIndex = index;
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+    allOptions.forEach(function(btn, idx) {
+      if (idx === index) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+    checkBtn.disabled = false;
+  }
+
+  function checkAnswer() {
+    if (selectedOptionIndex === null) return;
+    var q = questions[currentQuestionIndex];
+    var allOptions = optionsContainer.querySelectorAll(".option-btn");
+
+    allOptions.forEach(function(btn) { btn.disabled = true; });
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+
+    var isCorrect = (selectedOptionIndex === q.answer);
+
+    if (isCorrect) {
+      score++;
+      scoreCounter.textContent = "Aciertos: " + score;
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel success";
+      feedbackTitle.innerHTML = "📐 ¡Excelente! Respuesta correcta";
+      feedbackText.innerHTML = q.explanation;
+    } else {
+      allOptions[selectedOptionIndex].classList.remove("selected");
+      allOptions[selectedOptionIndex].classList.add("incorrect");
+      allOptions[q.answer].classList.add("correct");
+
+      feedbackPanel.className = "feedback-panel error";
+      feedbackTitle.innerHTML = "💡 Justificación geométrica:";
+      feedbackText.innerHTML = "<strong>Desarrollo:</strong> " + q.explanation;
+    }
+
+    feedbackPanel.style.display = "block";
+    nextBtn.focus();
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    quizBody.style.display = "none";
+    progressHeader.style.display = "none";
+    resultScreen.style.display = "block";
+
+    finalScore.textContent = score + " / " + questions.length;
+
+    var msg = "";
+    if (score === 20) {
+      resultTitle.textContent = "🧭 ¡Dominio Absoluto en Geometría y Probabilidad!";
+      msg = "¡Súper bien! Resolviste correctamente los 20 reactivos. Dominas ángulos entre paralelas, cálculo de áreas y perímetros, y probabilidad básica.";
+    } else if (score >= 16) {
+      resultTitle.textContent = "🌟 ¡Excelente Desempeño!";
+      msg = "Tienes un nivel de preparación muy sólido. Repasa los teoremas de ángulos exteriores y áreas compuestas para afinar los últimos detalles.";
+    } else if (score >= 11) {
+      resultTitle.textContent = "👍 ¡Buen Esfuerzo!";
+      msg = "Vas por buen camino. Te sugerimos practicar más las ecuaciones de ángulos correspondientes y el despeje de dimensiones geométricas.";
+    } else {
+      resultTitle.textContent = "💪 ¡A Seguir Practicando!";
+      msg = "¡No te desanimes! Refuerza las propiedades de rectas paralelas, fórmulas de área/perímetro y regla de Laplace para volver a intentarlo.";
+    }
+    finalMessage.textContent = msg;
+  }
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", initQuiz);
+
+  document.addEventListener("keydown", function(e) {
+    if (resultScreen.style.display === "block") {
+      if (e.key === "Enter") initQuiz();
+      return;
+    }
+
+    var key = e.key.toUpperCase();
+    if (["A", "1"].indexOf(key) !== -1) selectOption(0);
+    else if (["B", "2"].indexOf(key) !== -1) selectOption(1);
+    else if (["C", "3"].indexOf(key) !== -1) selectOption(2);
+    else if (["D", "4"].indexOf(key) !== -1) selectOption(3);
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (checkBtn.style.display !== "none" && !checkBtn.disabled) {
+        checkAnswer();
+      } else if (nextBtn.style.display !== "none") {
+        nextQuestion();
+      }
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", initQuiz);
+</script>
+
+</body>
+</html>
